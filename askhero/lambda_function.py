@@ -19,7 +19,7 @@ from langchain_core.prompts import PromptTemplate
 # LangChain setup
 session = boto3.Session(region_name = 'us-east-1', 
                         aws_access_key_id='x',
-                        aws_secret_access_key='x/bnz074MrTvv7y3W',)
+                        aws_secret_access_key='W',)
 boto3_bedrock = session.client(service_name="bedrock-runtime")
 
 # Langchain LLM
