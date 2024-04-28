@@ -1,0 +1,4 @@
+name: reroute
+input-topic: "npc-request"
+output-topics: ["npc1-request", "npc2-request", "npc3-request"]  
+language: tinygo-no-goroutines
