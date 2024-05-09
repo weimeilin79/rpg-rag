@@ -18,8 +18,8 @@ from langchain_core.prompts import PromptTemplate
 
 # LangChain setup
 session = boto3.Session(region_name = 'us-east-1', 
-                        aws_access_key_id='x',
-                        aws_secret_access_key='W',)
+                        aws_access_key_id='',
+                        aws_secret_access_key='',)
 boto3_bedrock = session.client(service_name="bedrock-runtime")
 
 # Langchain LLM
@@ -36,7 +36,7 @@ PROMPT = PromptTemplate(
         input_variables=["input_query"], template=prompt_template
 )
 
-llmChain = LLMChain(llm=llm, prompt=PROMPT)
+chain = PROMPT | llm
 
 def lambda_handler(event, context):
     print(f'event message: {event}')
@@ -64,7 +64,7 @@ def do_test():
     lambda_handler(event, None)
 
 def query_data(query):
-    response_msg = llmChain.invoke({"input_query": query})
+    response_msg = chain.invoke({"input_query": query})
     return response_msg
 
 do_test()
