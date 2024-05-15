@@ -1,0 +1,64 @@
+pipeline:
+  processors:
+    - mapping: |
+         root = this.records.values().index(0).index(0).value.decode("base64")
+output:
+  switch:
+    cases:
+      - check: this.who == "npc1"
+        output:
+          kafka_franz:
+            seed_brokers:
+              - couk6ual9050bvlc7pm0.any.us-east-1.mpx.prd.cloud.redpanda.com:9092
+            topic: npc1-request
+            tls:
+              enabled: true
+            sasl:
+              - mechanism: SCRAM-SHA-256
+                username: x
+                password: x
+          processors:
+            - type: bloblang
+              bloblang: |
+                root = this.msg
+      - check: this.who == "npc2"
+        output:
+          kafka_franz:
+            seed_brokers:
+              - couk6ual9050bvlc7pm0.any.us-east-1.mpx.prd.cloud.redpanda.com:9092
+            topic: npc2-request
+            tls:
+              enabled: true
+            sasl:
+              - mechanism: SCRAM-SHA-256
+                username: x
+                password: x
+          processors:
+            - type: bloblang
+              bloblang: |
+                root = this.msg
+      - check: this.who == "npc3"
+        output:
+          kafka_franz:
+            seed_brokers:
+              - couk6ual9050bvlc7pm0.any.us-east-1.mpx.prd.cloud.redpanda.com:9092
+            topic: npc3-request
+            tls:
+              enabled: true
+            sasl:
+              - mechanism: SCRAM-SHA-256
+                username: x
+                password: x
+          processors:
+            - type: bloblang
+              bloblang: |
+                root = this.msg
+  logger:
+    level: DEBUG
+    format: logfmt
+    add_timestamp: false
+    level_name: level
+    timestamp_name: time
+    message_name: msg
+    static_fields:
+      '@service': benthos

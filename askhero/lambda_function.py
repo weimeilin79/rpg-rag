@@ -1,25 +1,50 @@
 import json
 import os
 import boto3
-#from kafka import KafkaProducer
+from kafka import KafkaProducer
 from langchain_community.llms import Bedrock
 from langchain_aws import BedrockLLM
-from langchain.chains import LLMChain
 from langchain_core.prompts import PromptTemplate
-
+import boto3
+from botocore.exceptions import ClientError
 # Environment variables for Kafka configuration
 #REDPANDA_SERVER = os.environ['KAFKA_SERVER']  # Set this in your Lambda environment variables
 
+
+
+# Secret Manager setup
+secret_name = "demo/redpanda/rpg"
+region_name = "us-east-2"
+    # Create a Secrets Manager client
+sessionSM = boto3.session.Session()
+client = sessionSM.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+secret = get_secret_value_response['SecretString']
+secret_data = json.loads(secret)
+bedrock_key = secret_data['BEDROCK_KEY']
+bedrock_secret = secret_data['BEDROCK_SECRET']
+broker = secret_data['REDPANDA_SERVER']
+rp_user = secret_data['REDPANDA_USER']
+rp_pwd = secret_data['REDPANDA_PWD']
+
 # Kafka Producer setup
-#producer = KafkaProducer(
-#    bootstrap_servers=REDPANDA_SERVER,
-#    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-#)
+
+producer = KafkaProducer(
+  bootstrap_servers=[broker],
+  security_protocol="SASL_SSL",
+  sasl_mechanism="SCRAM-SHA-256",
+  sasl_plain_username=rp_user,
+  sasl_plain_password=rp_pwd,
+  value_serializer=lambda v: json.dumps(v).encode('utf-8')  # Serializer to convert to JSON
+)
 
 # LangChain setup
 session = boto3.Session(region_name = 'us-east-1', 
-                        aws_access_key_id='',
-                        aws_secret_access_key='',)
+                        aws_access_key_id=bedrock_key,
+                        aws_secret_access_key=bedrock_secret,)
 boto3_bedrock = session.client(service_name="bedrock-runtime")
 
 # Langchain LLM
@@ -50,21 +75,11 @@ def lambda_handler(event, context):
             "who": "npc1",
             "msg": response_msg
         }
-        #producer.send('rpg-response', message_data)
+        producer.send('rpg-response', message_data)
+        producer.flush()
+        producer.close()
 
-
-def do_test():
-    event = {
-        "Records": [
-            {
-                "value": "how's your day?"
-            }
-        ]
-    }
-    lambda_handler(event, None)
 
 def query_data(query):
     response_msg = chain.invoke({"input_query": query})
     return response_msg
-
-do_test()
