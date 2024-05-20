@@ -247,3 +247,22 @@ docker push <your-ecr-repository-uri>
 - Configure Function Settings:
 
 Click Create function to create the function.
+##  Add Redpanda as a Trigger to Lambda Functions
+- In the Lambda dashboard, click on Functions in the left-hand navigation pane.
+- Select the Lambda function you created (e.g., 
+  - askSFunction
+  - LangChainFunction
+
+### Add a Trigger
+- In the Configuration tab, choose Triggers from the left-hand menu.
+- Click the Add trigger button.
+
+### Deploy the pipeline
+- For Trigger configuration, choose Kafka.
+- Enter the required details:
+- Boostrap Server: Provide the ARN of your Kafka cluster.
+- Kafka topic: Specify the topic your Lambda function should subscribe to.
+- Batch size: Set the number of records to retrieve in each batch.
+- Starting position: Choose where to start reading messages (e.g., TRIM_HORIZON to start from the beginning or LATEST to start from the latest message).
+- Add Security Manager
+- Click Add to attach the trigger to your Lambda function.
