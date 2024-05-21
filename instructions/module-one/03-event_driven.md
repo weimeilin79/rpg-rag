@@ -1,5 +1,3 @@
-## 
-
 ### Open the S3 Console
 - In the AWS Management Console, select Services and then choose S3 under the "Storage" category.
 - Click the Create bucket button.
@@ -134,7 +132,7 @@ git clone https://github.com/weimeilin79/rpg-rag.git
 Navigate to the frontend directory:
 ```
 cd rpg-rag/frontend
-
+```
 Run the following command to install the necessary dependencies:
 ```
 npm install
