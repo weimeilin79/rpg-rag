@@ -1,22 +1,26 @@
 import boto3
 from opensearchpy import OpenSearch, RequestsHttpConnection, AWSV4SignerAuth
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.vectorstores import OpenSearchVectorSearch
-from langchain.document_loaders import TextLoader
+
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
 from langchain.prompts import ChatPromptTemplate
-from langchain.chat_models import ChatOpenAI
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain import LangChain
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.document_loaders import DirectoryLoader
+from langchain_community.vectorstores import OpenSearchVectorSearch
+from langchain_community.llms import Ollama
 
 host = 'xiegh39p77tea8gi3uo5.us-east-1.aoss.amazonaws.com' # NB without HTTPS prefix, without a port - be sure to substitute your region again
 region = 'us-east-1' # substitute your region here
-service = 'aoss'
-credentials = boto3.Session().get_credentials()
+service = 'es'
 
-auth = AWSV4SignerAuth(credentials, region, service)
+
+# LangChain setup
+session = boto3.Session(region_name = 'us-east-1', 
+                        aws_access_key_id='',
+                        aws_secret_access_key='',)
+session_creds = session.get_credentials()
+auth = AWSV4SignerAuth(session_creds, region, service)
 
 client = OpenSearch(
     hosts=[{'host': host, 'port': 443}],
@@ -27,48 +31,17 @@ client = OpenSearch(
 )
 
 # Embeddings
-# create HuggingFaceEmbeddings with BGE embeddings
-model_name = "BAAI/bge-large-en"
-model_kwargs = {'device': 'cpu'}
-encode_kwargs = {'normalize_embeddings': True}
-mbeddings = HuggingFaceEmbeddings(
-    model_name=model_name,
-    model_kwargs=model_kwargs,
-    encode_kwargs=encode_kwargs
-)
-dimensions = 1024
-
-# Index Creation
-index_name = "charcter-hero"
-indexBody = {
-    "settings": {
-        "index.knn": True
-    },
-    "mappings": {
-        "properties": {
-            "vector_field": {
-                "type": "knn_vector",
-                "dimension": dimensions,
-                "method": {
-                    "engine": "faiss",
-                    "name": "hnsw"
-                }
-            }
-        }
-    }
-}
-
-try:
-    create_response = client.indices.create(index_name, body=indexBody)
-    print('\nCreating index:')
-    print(create_response)
-except Exception as e:
-    print(e)
-    print("(Index likely already exists?)")
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
 
-loader = TextLoader("./stateoftheunion.txt")
+
+#Loading the story
+
+loader = DirectoryLoader('./story', glob="./corin.md", show_progress=True)
+
 documents = loader.load()
+
+print("--->" + str(len(documents)))
 
 text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 docs = text_splitter.split_documents(documents)
@@ -77,22 +50,27 @@ docsearch = OpenSearchVectorSearch.from_documents(
     docs,
     embeddings,
     opensearch_url=f'https://{host}:443',
+    engine="faiss",
     http_auth=auth,
     use_ssl=True,
     verify_certs=True,
     connection_class=RequestsHttpConnection,
-    index_name=index_name
+    index_name='hero_index'
 )
 
 
 
 # Document Search
-query = "What is happening with Justice Breyer"
-docs = docsearch.similarity_search(query, k=200)
+query = "Tell me about the hero"
+docs = docsearch.similarity_search(query, k=10)
 
 print('Total results:', len(docs))
 # The result here should be the document which closest resembles our question - the RAG phase actually formats an answer. 
 print('Best result:', docs[0].page_content)
+
+llm = Ollama(
+    model="llama2", callback_manager=CallbackManager([StreamingStdOutCallbackHandler()])
+)
 
 
 # RAG Prompt
@@ -104,11 +82,10 @@ Question: {question}
 """
 
 prompt = ChatPromptTemplate.from_template(template)
-model = ChatOpenAI()
 chain = (
     {"context": retriever, "question": RunnablePassthrough()}
     | prompt
-    | model
+    | llm
     | StrOutputParser()
 )
 # The result here should be a well-formatted answer to our question
