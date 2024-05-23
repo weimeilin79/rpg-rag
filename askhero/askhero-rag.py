@@ -12,13 +12,12 @@ from langchain_community.llms import Ollama
 
 host = 'xiegh39p77tea8gi3uo5.us-east-1.aoss.amazonaws.com' # NB without HTTPS prefix, without a port - be sure to substitute your region again
 region = 'us-east-1' # substitute your region here
-service = 'es'
+service = 'aoss'
 
 
 # LangChain setup
 session = boto3.Session(region_name = 'us-east-1', 
-                        aws_access_key_id='',
-                        aws_secret_access_key='',)
+							)
 session_creds = session.get_credentials()
 auth = AWSV4SignerAuth(session_creds, region, service)
 
@@ -60,14 +59,6 @@ docsearch = OpenSearchVectorSearch.from_documents(
 
 
 
-# Document Search
-query = "Tell me about the hero"
-docs = docsearch.similarity_search(query, k=10)
-
-print('Total results:', len(docs))
-# The result here should be the document which closest resembles our question - the RAG phase actually formats an answer. 
-print('Best result:', docs[0].page_content)
-
 llm = Ollama(
     model="llama2", callback_manager=CallbackManager([StreamingStdOutCallbackHandler()])
 )
@@ -75,18 +66,21 @@ llm = Ollama(
 
 # RAG Prompt
 retriever = docsearch.as_retriever()
-template = """Answer the question based only on the following context:
-{context}
+prompt_template = """You must provide an answer."
+                
+                "context": "You are a hero who lives in the fantasy world, you just defeated a monster, has been asked a question. 
+                sound more upbeat tone ."
 
-Question: {question}
-"""
+    user: {input_query}
+    """
+prompt = PromptTemplate(
+        input_variables=["input_query"], template=prompt_template
+)
 
-prompt = ChatPromptTemplate.from_template(template)
 chain = (
-    {"context": retriever, "question": RunnablePassthrough()}
-    | prompt
+    prompt
     | llm
     | StrOutputParser()
 )
 # The result here should be a well-formatted answer to our question
-print(chain.invoke(query))
+print(chain.invoke("Tell me about you?"))
