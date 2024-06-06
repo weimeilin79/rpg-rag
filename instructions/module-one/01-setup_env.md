@@ -1,3 +1,34 @@
+# Enhancing NPCs in Online RPG Games with AI and Serverless Architecture 
+
+## Overview
+Traditional RPG games are renowned for their rich and immersive worlds, populated by numerous NPCs (Non-Player Characters) that provide crucial information, hints, and contribute significantly to world-building. However, many current online games fall short in this aspect, with NPCs often reduced to repetitive, robotic dialogues, which can be quite monotonous. To address this, we are going to leverage AI to enhance NPC interactions in our next game, making them more dynamic and engaging.
+
+To prototype this game, we have set the following requirements: the solution needs to be scalable to handle fluctuating traffic typical of online games. It must also scale down resources when they are not needed to optimize cost and efficiency. Therefore, we have decided to adopt a serverless architecture, utilizing streaming for data flow and an Event-Driven Architecture (EDA) as the backbone.
+
+Benefits of Using AI with Serverless Architecture for NPCs:
+
+Scalability and Cost Efficiency:
+  - Dynamic Scaling
+  - Pay-as-You-Go
+Enhanced Player Experience:
+  - Intelligent NPCs
+  - Continuous Improvement
+Efficient Data Handling with Streaming and EDA:
+  - Real-time Data Processing
+  - Event-Driven Flexibility
+  - Modular Design
+Seamless Integration and Maintenance:
+  - Reliability and Resilience
+
+By leveraging AI and serverless architecture, we can revolutionize NPC interactions in online RPG games, providing a more immersive, responsive, and engaging player experience while maintaining cost efficiency and scalability.
+
+## Technology Stack 
+In this workshop, we will leverage a variety of AWS and Redpanda technologies to build and deploy scalable, efficient, and intelligent systems. 
+
+We will use **AWS Lambda** for serverless computing, enabling us to run code in response to events without provisioning or managing servers. For our AI needs, we will utilize **AWS Bedrock** powerful models for natural language processing and chat functionalities. Additionally, we will incorporate LangChain, a framework for developing applications powered by language models, to streamline the integration of advanced AI capabilities into our systems. 
+
+On the Redpanda side, we will leverage **Redpanda Serverless** for scalable and high-throughput data streaming and **Redpanda Connect** (formerly Benthos) for connecting to various data endpoints and enabling seamless data flow integration. 
+
 
 ## Create a New User in IAM
 
