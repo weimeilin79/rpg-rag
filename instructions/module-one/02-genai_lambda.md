@@ -6,10 +6,12 @@
 
 ### Create a New Lambda Function:
 - Click the Create function button.
-- Select Author from scratch.
+- Select: Author from scratch.
 - Function name: askSorcerer
 - Runtime: Choose Python 3.12
+- Architecture : arm64
 - Click Create function to create the function.
+![Create lambda](images/askSorcerer-create.png)
 
 ### Add the Python Code:
 
@@ -20,8 +22,8 @@ import json
 from kafka import KafkaProducer
 
 # Secret Manager setup
-secret_name = "demo/redpanda/rpg"
-region_name = "us-east-2"
+secret_name = "workshop/redpanda/npc"
+region_name = "us-east-1"
 sessionSM = boto3.session.Session()
 client = sessionSM.client(service_name='secretsmanager', region_name=region_name)
 get_secret_value_response = client.get_secret_value(SecretId=secret_name)
@@ -89,8 +91,14 @@ def lambda_handler(event, context):
 ### Add Requirements:
 - Create a requirements.txt file with the following content and upload it using the Lambda function's code editor:
 ```
-boto3
-kafka-python-ng
+boto3==1.34.124
+botocore==1.34.124
+jmespath==1.0.1
+kafka-python==2.0.2
+python-dateutil==2.9.0.post0
+s3transfer==0.10.1
+six==1.16.0
+urllib3==2.2.1
 ```
 
 ### Configure the Lambda Function
@@ -114,7 +122,6 @@ Select the Lambda Service:
 Attach Policies:
 
 In the Attach permissions policies section, search for and select the following policies:
-- **AWSLambdaBasicExecutionRole** - provides basic logging permissions to CloudWatch.
 - **SecretsManagerReadWrite** - allows read/write access to AWS Secrets Manager.
 - **AmazonS3ReadOnlyAccess** - if your Lambda needs to read from S3.
 - **AmazonEC2ContainerRegistryReadOnly** - for pulling Docker images from ECR .

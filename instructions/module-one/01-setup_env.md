@@ -31,6 +31,7 @@ On the Redpanda side, we will leverage **Redpanda Serverless** for scalable and 
 
 
 ## Create a New User in IAM
+We will walk you through the process of creating a new user in IAM, enabling AWS IAM permissions for Bedrock, signing up for Bedrock.
 
 ### Sign in to the AWS Management Console
 Open the AWS Management Console at https://aws.amazon.com/ and sign in with your credentials.
@@ -99,6 +100,7 @@ On the final page, you will see the user’s access key ID and secret access key
 
 ## Setup a Container Registry
 
+
 ### Navigate to Amazon ECR
 - In the AWS Management Console, select Services.
 - Under the "Containers" category, choose Elastic Container Registry.
@@ -124,7 +126,7 @@ On the final page, you will see the user’s access key ID and secret access key
 ### Sign up and Create a Cluster
 - Redpanda supports Dedicated Cloud, with clusters operating within the Redpanda Cloud environment, as well as Bring Your Own Cloud (BYOC), which allows clusters to run in your private cloud. Redpanda offers developers a third option known as "serverless," providing seamless and immediate access to streaming capabilities.
 
-- For our workshop, we will be using the serverless platform. To start using Redpanda Serverless, ![sign up](https://cloud.redpanda.com/sign-up/) for a free trial. Each trial supports five Serverless clusters. 
+- For our workshop, we will be using the serverless platform. To start using Redpanda Serverless, [sign up](https://cloud.redpanda.com/sign-up/) for a free trial. Each trial supports five Serverless clusters. 
 
 - Click on the default namespace and enter the welcome cluster
 ![Serverless Overview](images/rp-overview.png)
@@ -140,10 +142,16 @@ NOTE: You have the ability to create multiple clusters under the namespace, it's
 ![Serverless Create ACL](images/rp-create-acl.png)
 
 - Access-control lists (ACLs) are the primary mechanism used by Redpanda to manage user permissions. In the configuration page, chose to grant all permission and click OK to save. 
-![Serverless Create ACL](images/rp-acl-config.png)
+![Serverless Config ACL](images/rp-acl-config.png)
 
 
 ## Setup Secret Manager
+
+Securely managing sensitive information like the credentials, and encryption keys is crucial. AWS Secret Manager provides a secure and scalable solution for storing and managing secrets. With Secret Manager, you can easily store, retrieve, and rotate secrets, ensuring that your applications have access to the necessary credentials without compromising security.
+
+In this section, we will walk you through the process of setting up Secret Manager and demonstrate how to create and manage secrets. By the end of this tutorial, you will have a solid understanding of how to leverage Secret Manager to enhance the security of your applications.
+
+Let's get started!
 
 ### Open the Secrets Manager Console
 - Open the Secrets Manager console at https://console.aws.amazon.com/secretsmanager/.
@@ -152,6 +160,14 @@ NOTE: You have the ability to create multiple clusters under the namespace, it's
 - Choose Store a new secret.
 - On the Choose secret type page, do the following:
 - For Secret type, choose **Other type of secret**.
-- In Key/value pairs, either enter your secret in JSON Key/value pairs, or choose the Plaintext tab and enter the secret in any format. You can store up to 65536 bytes in the secret.
-
-
+- In Key/value pairs,  enter your secret in JSON Key/value pairs and configure the following key/value. And click Next.
+      - BEDROCK_KEY :  IAM Access Key
+      - BEDROCK_SECRET :  Secret access key
+      - REDPANDA_SERVER :  Redpanda Bootstrap server URL 
+      - REDPANDA_USER : workshop
+      - REDPANDA_PWD : 1234qwer
+![Secrets manager configurations](images/secretsmanager-config.png)  
+- Name the Secret name : workshop/redpanda/npc and go through the steps with default value until you reach step Review, click `store` button to finish setting up the secret.
+![Secrets manager name](images/secretsmanager-name.png)  
+- You'll see the secret created.
+![Secrets manager list](images/secretsmanager-list.png)  
