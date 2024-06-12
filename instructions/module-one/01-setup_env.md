@@ -62,12 +62,11 @@ On the final page, you will see the user’s access key ID and secret access key
 - Choose Attach policies directly.
 - Search for and select the appropriate policies that grant access to Bedrock. These policies include:
     - **AmazonBedrockFullAccess**: This policy grants full access to Bedrock resources.
-    - **AmazonBedrockReadOnlyAccess** : This policy grants read-only access to Bedrock resources.
 - Select the policies and click on the Next: Review button.
 - Review the permissions and click on the Add permissions button.
 
-### Create Inline Policy (Optional)
-- To grant Bedrock access to your identity, you can:
+### Add Inline Policy 
+- To grant OpenSearch Serverless access to your identity, you can:
     - Open the AWS IAM Console.
     - Find your User.
     - Select Add Permissions > Create Inline Policy to attach new inline permissions, open the JSON editor and paste in the below example policy:
@@ -76,23 +75,29 @@ On the final page, you will see the user’s access key ID and secret access key
         "Version": "2012-10-17",
         "Statement": [
             {
-                "Sid": "BedrockFullAccess",
-                "Effect": "Allow",
-                "Action": ["bedrock:*"],
-                "Resource": "*"
+              "Sid": "Statement1",
+              "Effect": "Allow",
+              "Action": [
+                "aoss:*"
+              ],
+              "Resource": [
+                "*"
+              ]
             }
         ]
     }
     ```
+### Create Access key
+
+- In Access key 1, click on **Create access key**, select **Application running outside AWS**
+- Click Next to proceed and Create access key. 
+- STORE THE Access key, and Secret access key, DO NOT LOSE IT!
 
 ## Sign up for Bedrock
 - Amazon Bedrock is a fully managed service that provides access to foundation models available via an API. With Bedrock, you can choose from a variety of models to find the one that’s best suited for your use case.
-- In US-EAST-1, go to https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess and enable the service.
+- In US-EAST-1, go to https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess and enable the following model.
 
 ## Setup a Container Registry
-
-### Sign in to the AWS Management Console
-- Open the AWS Management Console at https://aws.amazon.com/ and sign in with your credentials.
 
 ### Navigate to Amazon ECR
 - In the AWS Management Console, select Services.
@@ -107,9 +112,36 @@ On the final page, you will see the user’s access key ID and secret access key
 **Repository name**: `redpanda-workshop`.
 **Visibility settings**:  `Private`, The repository is only accessible to your AWS account.
 
-### Create the Repository
+![ACR config](images/acr_create.png)
 
 - Review your settings and click the Create repository button.
+- Copy the URI and have it handy
+
+![ACR config](images/acr-uri.png)
+
+## Sign up for Redpanda Serverless Cluster
+
+### Sign up and Create a Cluster
+- Redpanda supports Dedicated Cloud, with clusters operating within the Redpanda Cloud environment, as well as Bring Your Own Cloud (BYOC), which allows clusters to run in your private cloud. Redpanda offers developers a third option known as "serverless," providing seamless and immediate access to streaming capabilities.
+
+- For our workshop, we will be using the serverless platform. To start using Redpanda Serverless, ![sign up](https://cloud.redpanda.com/sign-up/) for a free trial. Each trial supports five Serverless clusters. 
+
+- Click on the default namespace and enter the welcome cluster
+![Serverless Overview](images/rp-overview.png)
+
+NOTE: You have the ability to create multiple clusters under the namespace, it's great for projects that don’t need a dedicated cluster all the time, spiky workloads and needed separate virtual cluster for topic management.
+
+### Securing Redpanda
+- Configure authentication by going to security and create a new user. 
+- Set the username to `workshop`, password to `1234qwer`
+![Serverless Create new user](images/rp-create-user.png)
+
+- Access-control lists (ACLs) are the primary mechanism used by Redpanda to manage user permissions. On the top tab, click **ACL** and click on the `workshop` principle that you have just created
+![Serverless Create ACL](images/rp-create-acl.png)
+
+- Access-control lists (ACLs) are the primary mechanism used by Redpanda to manage user permissions. In the configuration page, chose to grant all permission and click OK to save. 
+![Serverless Create ACL](images/rp-acl-config.png)
+
 
 ## Setup Secret Manager
 
@@ -123,13 +155,3 @@ On the final page, you will see the user’s access key ID and secret access key
 - In Key/value pairs, either enter your secret in JSON Key/value pairs, or choose the Plaintext tab and enter the secret in any format. You can store up to 65536 bytes in the secret.
 
 
-### Sign up for Redpanda Serverless Cluster
-
-## Sign up and Create a Cluster
-- Redpanda supports Dedicated Cloud, with clusters operating within the Redpanda Cloud environment, as well as Bring Your Own Cloud (BYOC), which allows clusters to run in your private cloud. Redpanda offers developers a third option known as "serverless," providing seamless and immediate access to streaming capabilities.
-
-- For our workshop, we will be using the serverless platform. Go to https://cloud.redpanda.com/  and sign up for Redpanda Serverless by setting up your credentials.
-
-- Click on the default namespace and enter the welcome cluster
-
-NOTE: You have the ability to create multiple clusters under the namespace, it's great for projects that don’t need a dedicated cluster all the time, spiky workloads and needed separate virtual cluster for topic management.
