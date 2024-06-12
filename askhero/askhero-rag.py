@@ -1,86 +1,50 @@
 import boto3
-from opensearchpy import OpenSearch, RequestsHttpConnection, AWSV4SignerAuth
-from langchain.text_splitter import CharacterTextSplitter
+from langchain_community.llms import Bedrock
+from langchain_community.retrievers import AmazonKnowledgeBasesRetriever
+from langchain.chains import RetrievalQA
 
-from langchain.schema.runnable import RunnablePassthrough
-from langchain.schema.output_parser import StrOutputParser
-from langchain.prompts import ChatPromptTemplate
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.document_loaders import DirectoryLoader
-from langchain_community.vectorstores import OpenSearchVectorSearch
-from langchain_community.llms import Ollama
-
-host = 'xiegh39p77tea8gi3uo5.us-east-1.aoss.amazonaws.com' # NB without HTTPS prefix, without a port - be sure to substitute your region again
-region = 'us-east-1' # substitute your region here
-service = 'aoss'
+from langchain_aws import BedrockLLM
+from langchain_core.prompts import PromptTemplate
 
 
 # LangChain setup
 session = boto3.Session(region_name = 'us-east-1', 
-							)
-session_creds = session.get_credentials()
-auth = AWSV4SignerAuth(session_creds, region, service)
+                        aws_access_key_id='x',
+                        aws_secret_access_key='x',)
+boto3_bedrock = session.client(service_name="bedrock-runtime")
 
-client = OpenSearch(
-    hosts=[{'host': host, 'port': 443}],
-    http_auth=auth,
-    use_ssl=True,
-    verify_certs=True,
-    connection_class=RequestsHttpConnection
+
+retriever = AmazonKnowledgeBasesRetriever(
+    region_name = 'us-east-1', 
+    knowledge_base_id="TEPCFIZTYF",
+    retrieval_config={"vectorSearchConfiguration": {"numberOfResults": 5}},
 )
 
-# Embeddings
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
+# Langchain LLM
+llm = BedrockLLM(client=boto3_bedrock, model_id="meta.llama2-13b-chat-v1", region_name='us-east-1')
+
+# Define the user message to send.
+input_query = "Tell me about you?"
 
 
-
-#Loading the story
-
-loader = DirectoryLoader('./story', glob="./corin.md", show_progress=True)
-
-documents = loader.load()
-
-print("--->" + str(len(documents)))
-
-text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-docs = text_splitter.split_documents(documents)
-
-docsearch = OpenSearchVectorSearch.from_documents(
-    docs,
-    embeddings,
-    opensearch_url=f'https://{host}:443',
-    engine="faiss",
-    http_auth=auth,
-    use_ssl=True,
-    verify_certs=True,
-    connection_class=RequestsHttpConnection,
-    index_name='hero_index'
-)
-
-
-
-llm = Ollama(
-    model="llama2", callback_manager=CallbackManager([StreamingStdOutCallbackHandler()])
-)
-
-
-# RAG Prompt
-retriever = docsearch.as_retriever()
-prompt_template = """You must provide an answer."
-                
-                "context": "You are a hero who lives in the fantasy world, you just defeated a monster, has been asked a question. 
-                sound more upbeat tone ."
-
-    user: {input_query}
+# Define the prompt template with the context and user input
+prompt_template = """You are a hero who lives in the fantasy world, you just defeated a monster, has been asked a question.sound more upbeat tone .
+{context}
+User: {question}
     """
-prompt = PromptTemplate(
-        input_variables=["input_query"], template=prompt_template
+
+PROMPT = PromptTemplate(
+    input_variables=["context","question"], 
+    template=prompt_template
 )
 
-chain = (
-    prompt
-    | llm
-    | StrOutputParser()
-)
-# The result here should be a well-formatted answer to our question
-print(chain.invoke("Tell me about you?"))
+qa = RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=retriever,
+        return_source_documents=False,
+        chain_type_kwargs={"prompt": PROMPT},
+    )
+
+response = qa(input_query)
+
+print(response)
