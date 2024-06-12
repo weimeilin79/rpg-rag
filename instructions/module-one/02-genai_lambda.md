@@ -43,7 +43,7 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode('utf-8')  # Serializer to convert to JSON
 )
 
-# boto3 setup
+# LangChain setup
 session = boto3.Session(region_name='us-east-1', aws_access_key_id=bedrock_key, aws_secret_access_key=bedrock_secret)
 boto3_bedrock = session.client(service_name="bedrock-runtime")
 
@@ -120,12 +120,6 @@ In the Attach permissions policies section, search for and select the following 
 - **AmazonEC2ContainerRegistryReadOnly** - for pulling Docker images from ECR .
 
 ## Create the Second Lambda Function using Docker
-
-In cloud9, 
-
-```
-git clone 
-```
 Create Docker Image for Lambda
 ```
 FROM public.ecr.aws/lambda/python:3.12
@@ -255,7 +249,7 @@ docker push <your-ecr-repository-uri>
 Click Create function to create the function.
 ##  Add Redpanda as a Trigger to Lambda Functions
 - In the Lambda dashboard, click on Functions in the left-hand navigation pane.
-- Select the Lambda function you created 
+- Select the Lambda function you created (e.g., 
   - askSFunction
   - LangChainFunction
 

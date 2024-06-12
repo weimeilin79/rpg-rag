@@ -91,24 +91,25 @@ On the final page, you will see the user’s access key ID and secret access key
 
 ## Setup a Container Registry
 
+### Sign in to the AWS Management Console
+- Open the AWS Management Console at https://aws.amazon.com/ and sign in with your credentials.
+
 ### Navigate to Amazon ECR
 - In the AWS Management Console, select Services.
 - Under the "Containers" category, choose Elastic Container Registry.
 
 ### Create a Repository
-- In the Amazon ECR dashboard, click on Repositories.
+- In the Amazon ECR dashboard, click on Repositories in the left-hand navigation pane.
 - Click the Create repository button at the top of the page.
 
 ### Configure the Repository
 
-**Cluster name**: `redpanda-workshop`.
+**Repository name**: `redpanda-workshop`.
 **Visibility settings**:  `Private`, The repository is only accessible to your AWS account.
 
 ### Create the Repository
 
 - Review your settings and click the Create repository button.
-  
-Copy URI `xxx.dkr.ecr.us-east-1.amazonaws.com/redpanda-workshop`
 
 ## Setup Secret Manager
 
