@@ -8,7 +8,7 @@ from langchain_core.prompts import PromptTemplate
 
 
 # LangChain setup
-session = boto3.Session(region_name = 'us-east-1', 
+session = boto3.Session(region_name = 'us-east-x', 
                         aws_access_key_id='x',
                         aws_secret_access_key='x',)
 boto3_bedrock = session.client(service_name="bedrock-runtime")
@@ -21,7 +21,7 @@ retriever = AmazonKnowledgeBasesRetriever(
 )
 
 # Langchain LLM
-llm = BedrockLLM(client=boto3_bedrock, model_id="meta.llama2-13b-chat-v1", region_name='us-east-1')
+llm = BedrockLLM(client=boto3_bedrock, model_id="meta.llama2-13b-chat-v1", region_name='us-east-x')
 
 # Define the user message to send.
 input_query = "Tell me about you?"
