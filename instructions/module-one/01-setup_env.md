@@ -131,6 +131,10 @@ On the final page, you will see the user’s access key ID and secret access key
 
 NOTE: You have the ability to create multiple clusters under the namespace, it's great for projects that don’t need a dedicated cluster all the time, spiky workloads and needed separate virtual cluster for topic management.
 
+### Get Redpanda bootstrap URL
+- In Overview, under How to connect, click on the `Kafka API`, you'll find the **Bootstrap server URL**, make sure you save it somewhere for later.
+![Redpanda Bootstrap URL](images/rp-bootstrap.png)
+
 ### Securing Redpanda
 - Configure authentication by going to security and create a new user. 
 - Set the username to `workshop`, password to `1234qwer`
@@ -167,7 +171,7 @@ Let's get started!
 ![Secrets manager name](images/secretsmanager-name.png)  
 - You'll see the secret created.
 ![Secrets manager list](images/secretsmanager-list.png)  
-
+lm
 - Create another new secret called `workshop/redpanda/lambda` for the lambda trigger, repeat above steps with following configuration:
     - username : workshop
     - password : 1234qwer
