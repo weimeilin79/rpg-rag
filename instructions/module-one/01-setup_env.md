@@ -104,8 +104,6 @@ On the final page, you will see the user’s access key ID and secret access key
 ### Navigate to Amazon ECR
 - In the AWS Management Console, select Services.
 - Under the "Containers" category, choose Elastic Container Registry.
-
-### Create a Repository
 - In the Amazon ECR dashboard, click on Repositories in the left-hand navigation pane.
 - Click the Create repository button at the top of the page.
 
@@ -161,13 +159,31 @@ Let's get started!
 - On the Choose secret type page, do the following:
 - For Secret type, choose **Other type of secret**.
 - In Key/value pairs,  enter your secret in JSON Key/value pairs and configure the following key/value. And click Next.
-      - BEDROCK_KEY :  IAM Access Key
-      - BEDROCK_SECRET :  Secret access key
-      - REDPANDA_SERVER :  Redpanda Bootstrap server URL 
-      - REDPANDA_USER : workshop
-      - REDPANDA_PWD : 1234qwer
+    - REDPANDA_SERVER :  Redpanda Bootstrap server URL 
+    - REDPANDA_USER : workshop
+    - REDPANDA_PWD : 1234qwer
 ![Secrets manager configurations](images/secretsmanager-config.png)  
 - Name the Secret name : workshop/redpanda/npc and go through the steps with default value until you reach step Review, click `store` button to finish setting up the secret.
 ![Secrets manager name](images/secretsmanager-name.png)  
 - You'll see the secret created.
 ![Secrets manager list](images/secretsmanager-list.png)  
+
+- Create another new secret called `workshop/redpanda/lambda` for the lambda trigger, repeat above steps with following configuration:
+    - username : workshop
+    - password : 1234qwer
+
+## Set Up AWS Cloud9 Workspace
+Next, create a workspace for the Redpanda workshop, follow these steps:
+
+- navigate to the AWS Cloud9 service.
+- Click on the "Create environment" button.
+  - Enter a name for your workspace,"redpanda-workshop".
+  - Choose "Create a new EC2 instance for environment (direct access)" as the environment type.
+  - Select "t3.small" as the instance type.
+  - Set the timeout value to 4 hours.
+-  Review the configuration and click on the "Create environment" button.
+-  Wait for the workspace to be created. Once it's ready, you can access it by clicking on the "Open IDE" button.
+
+Now you have a Cloud9 workspace set up for the Redpanda workshop. You can use this workspace to follow along with the instructions and complete the workshop tasks.
+
+

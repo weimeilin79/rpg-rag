@@ -1,3 +1,13 @@
+## Add Topics in Redpanda Serverless Platform  
+-  Open the Redpanda Serverless platform in your web browser.
+- Navigate to the "Topics" section.
+- Click on the "Create Topic" button.
+- Enter "npc2-request" as the topic name and click "Create".
+- Repeat steps 4 and 5 to create another topic named "npc-response".
+- Verify that both topics have been successfully created.
+
+Now you have added the necessary topics to Redpanda Serverless for your Lambda functions to communicate with.
+
 ## Create the First Lambda Function using the AWS Lambda UI
 
 ### Create the Lambda Function
@@ -19,6 +29,7 @@
 ```
 import boto3
 import json
+import base64 
 from kafka import KafkaProducer
 
 # Secret Manager setup
@@ -46,7 +57,7 @@ producer = KafkaProducer(
 )
 
 # LangChain setup
-session = boto3.Session(region_name='us-east-1', aws_access_key_id=bedrock_key, aws_secret_access_key=bedrock_secret)
+session = boto3.Session(region_name='us-east-1')
 boto3_bedrock = session.client(service_name="bedrock-runtime")
 
 # Set the model ID, e.g., Llama 3 Chat.
@@ -57,7 +68,8 @@ input_query = "How are you?"
 
 # Embed the message in Llama 3's prompt format.
 prompt = f"""You must provide an answer."
-                "context": "You are a hero who lives in the fantasy world, you just defeated a monster, has been asked a question.sound more upbeat tone ."
+                "context":  "You are a sorcerer who lives in the fantasy world, specialized in light magic, but you are familiar with other elements, you have been asked a question. You must provide an answer.
+                Your have a hot-cold personality type, normally being sharp but at some prompt suddenly becoming lovestruck. You are in your 20s, and female."
     user: {input_query}
     """
 
@@ -66,65 +78,163 @@ request = {
     "prompt": prompt
 }
 
-# Encode and send the request.
-response_stream = boto3_bedrock.invoke_model_with_response_stream(
-    body=json.dumps(request),
-    modelId=model_id,
-)
 
 def lambda_handler(event, context):
     print(f'event message: {event}')
-    for record in event['Records']:
-        question = record['value']  # Adjust based on actual message format
-        print(f"Received message: {question}")
-        for event in response_stream["body"]:
-            chunk = json.loads(event["chunk"]["bytes"])
-            if "generation" in chunk:
-                message_data = {
-                    "who": "npc1",
-                    "msg": chunk["generation"]
-                }
-                producer.send('rpg-response', message_data)
-        producer.flush()
-        producer.close()
+    for topic_partition, records in event['records'].items():
+        for record in records:
+            question = base64.b64decode(record['value'])  # Adjust based on actual message format
+            print(f"Received message: {question}")
+
+            # Encode and send the request.
+            response_stream = boto3_bedrock.invoke_model_with_response_stream(
+                body=json.dumps(request),
+                modelId=model_id,
+            )
+            response_text = ""
+            for event in response_stream["body"]:
+                chunk = json.loads(event["chunk"]["bytes"])
+                if "generation" in chunk:
+                    response_text += chunk["generation"]
+            message_data = {
+                "who": "npc2",
+                "msg": response_text
+            }
+            producer.send('rpg-response', message_data)
+            producer.flush()
+    producer.close()
 ```
-### Add Requirements:
+### Creating a zip deployment package with dependencies
 - Create a requirements.txt file with the following content and upload it using the Lambda function's code editor:
 ```
-boto3==1.34.124
-botocore==1.34.124
+boto3==1.34.125
+botocore==1.34.125
 jmespath==1.0.1
-kafka-python==2.0.2
+kafka-python-ng==2.2.2
 python-dateutil==2.9.0.post0
 s3transfer==0.10.1
 six==1.16.0
 urllib3==2.2.1
 ```
 
+- Create and activate a virtual environment in your project directory
+```
+python3 -m venv env
+source env/bin/activate
+source ./env/bin/activate
+```
+
+- Install the required libraries with pip. 
+```
+pip install -r requirements.txt 
+```
+
+The folder in which pip installs the libraries may be named site-packages or dist-packages. This folder may be located in either the lib/python3.x or lib64/python3.x directory
+
+- Deactivate the virtual environment
+```
+deactivate
+```
+
+- Navigate into the directory containing the dependencies you installed with pip and create a .zip file in your project directory with the installed dependencies at the root. 
+
+```
+cd env/lib/python3.12/site-packages
+zip -r ../../../../askSorcerer.zip . -x "*__pycache__*" 
+cd ../../../../
+zip askSorcerer.zip lambda_function.py
+```
+
+Note: 
+
+### Upload the Zip File to Lambda Function:
+- Open the AWS Management Console and navigate to the Lambda service.
+- Select the Lambda function you want to upload the zip file to.
+- In the function's configuration, go to the "Code" tab.
+- Scroll down to the "Function code" section and click on the "Upload" button.
+- Choose the lambda_libs.zip file from your local machine and click on the "Open" button.
+- Wait for the upload to complete, and then click on the "Save" button to apply the changes.
+
 ### Configure the Lambda Function
 - Click on the Configuration tab.
 - Choose Environment variables from the left-hand menu.
 - Click Edit and add the following environment variables if necessary:
 
-### Set Up Permissions:
+### Update lambda configuration Permissions:
 
-Ensure the Lambda function has the necessary IAM role with permissions to access Setting Up Permissions for Lambda Functions
+- In the function's configuration, click on the "Configuration" tab.
+- Scroll down to the "Permissions" section and click on the "Edit" button.
+- Add the necessary following policies
+  - **SecretsManagerReadWrite** - allows read/write access to AWS Secrets Manager.
+  - **AmazonS3ReadOnlyAccess** - if your Lambda needs to read from S3.
+  - **AmazonEC2ContainerRegistryReadOnly** - for pulling Docker images from ECR .
+- Click on the "Save" button to apply the changes. 
 
-- In the AWS Management Console, select Services and then choose IAM under the "Security, Identity, & Compliance" category.
+- Set the timeout for your Lambda function to 30 seconds, still in the "Configuration" tab.
+- Scroll down to the "General configuration" section.
+- In the "Timeout" field, enter "30" (without quotes) to set the timeout to 30 seconds.
+- Click on the "Save" button to apply the changes.
+  
+This will ensure that your Lambda function has a maximum execution time of 30 seconds before it times out and update the permissions for your Lambda function to include the required access to AWS services and resources.
 
-- In the IAM dashboard, click on Roles in the left-hand navigation pane.
-Click the Create role button at the top of the page.
-Select the Lambda Service:
+### Test the Lambda Function
+To test the Lambda function with a test event, 
 
-- Under Select type of trusted entity, choose AWS service.
-- In the Use case section, select Lambda.
-- Click the Next: Permissions button.
-Attach Policies:
+- In the function's configuration, go to the "Code" tab.
+- Scroll down to the "Test events" section and click on the "Configure test events" button.
+- Click on the "Create new test event" button.
+- Enter a name for the test event (e.g., "MockEvent").
+- In the event body, provide the test event JSON payload 
 
-In the Attach permissions policies section, search for and select the following policies:
-- **SecretsManagerReadWrite** - allows read/write access to AWS Secrets Manager.
-- **AmazonS3ReadOnlyAccess** - if your Lambda needs to read from S3.
-- **AmazonEC2ContainerRegistryReadOnly** - for pulling Docker images from ECR .
+```
+{
+  "eventSource": "SelfManagedKafka",
+  "bootstrapServers": "redpanda.example.com:9092",
+  "records": {
+    "npc2-request-0": [
+      {
+        "topic": "npc2-request",
+        "partition": 0,
+        "offset": 0,
+        "timestamp": 1718237343835,
+        "timestampType": "CREATE_TIME",
+        "key": "",
+        "value": "SG93J3MgeW91ciBkYXk/",
+        "headers": []
+      }
+    ]
+  }
+}
+```
+- Click on the "Create" button to save the test event.
+- Back in the "Test events" section, select the test event you just created from the dropdown menu.
+- Click on the "Test" button to execute the Lambda function with the test event.
+
+### Configure the Trigger for the Lambda Function
+To configure the trigger for the Lambda function and connect to the topic in Redpanda Serverless using Kafka endpoint, follow these steps:
+
+1. Open the AWS Management Console and navigate to the Lambda service.
+2. Select the Lambda function you want to configure the trigger for (e.g., askSorcerer).
+3. In the function's configuration, go to the "Triggers" tab.
+4. Click on the "Add trigger" button.
+5. For the trigger configuration, choose "Kafka".
+6. Enter the required details:
+    - Bootstrap Server: Provide the Kafka endpoint of your Redpanda Serverless cluster.
+    - Kafka topic: Specify the name of the topic you want the Lambda function to subscribe to `npc2-request`.
+    - Batch size: Set the batch size to 1 to retrieve one record at a time.
+    - Starting position: Choose where to start reading messages (e.g., TRIM_HORIZON to start from the beginning or LATEST to start from the latest message).
+    - Authentication: Select "SASL_SCRAM_256_AUTH" as the authentication mechanism.
+    - Secrets Manager key: Enter the key **workshop/redpanda/lambda** for the Secrets Manager secret.
+
+7. Click on the "Add" button to attach the trigger to your Lambda function.
+
+This configuration will enable your Lambda function to receive messages from the specified Kafka topic in Redpanda Serverless, with a batch size of 1 record at a time, using SASL/SCRAM authentication and retrieving messages starting from the specified position.
+
+### Test the result
+Use the Redpanda Serverless console to post a text message in the "npc2-request" topic. Enter the value "how's your day" as the message content.
+After the Lambda function is triggered, check the "npc-response" topic to see the result.
+
+
 
 ## Create the Second Lambda Function using Docker
 Create Docker Image for Lambda
