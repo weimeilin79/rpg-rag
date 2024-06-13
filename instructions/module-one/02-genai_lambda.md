@@ -1,15 +1,3 @@
-## Add Topics in Redpanda Serverless Platform  
--  Open the Redpanda Serverless platform in your web browser.
-- Navigate to the "Topics" section.
-- Click on the "Create Topic" button.
-- Enter "npc2-request" as the topic name and click "Create".
-- Repeat steps 4 and 5 to create another topic named "npc-response".
-- Verify that both topics have been successfully created.
-
-![Redpanda Serverless Topics](images/rp-npc2-topics.png)
-
-Now you have added the necessary topics to Redpanda Serverless for your Lambda functions to communicate with.
-
 ## Create the First Lambda Function 
 
 The Python app is a Lambda function that integrates with Redpanda Serverless. It is responsible for processing messages received from the "npc2-request" topic and generating responses that are published to the "npc-response" topic.
@@ -21,6 +9,20 @@ To deploy the Lambda function, a zip deployment package is created. The required
 The zip file is uploaded to the Lambda function through the AWS Management Console. The function's configuration is updated to include necessary environment variables and permissions. The timeout is set to 30 seconds to ensure the function has enough time to process messages. Test events can be created to verify the function's behavior.
 
 The Lambda function is triggered by messages from the Kafka topic. It receives the event payload, which contains the message from the "npc2-request" topic. 
+
+
+### Add Topics in Redpanda Serverless Platform  
+-  Open the Redpanda Serverless platform in your web browser.
+- Navigate to the "Topics" section.
+- Click on the "Create Topic" button.
+- Enter "npc2-request" as the topic name and click "Create".
+- Repeat steps 4 and 5 to create another topic named "npc-response".
+- Verify that both topics have been successfully created.
+
+![Redpanda Serverless Topics](images/rp-npc2-topics.png)
+
+Now you have added the necessary topics to Redpanda Serverless for your Lambda functions to communicate with.
+
 
 ### Create the Lambda Function
  -  Sign in to the AWS Management Console:
@@ -36,6 +38,13 @@ The Lambda function is triggered by messages from the Kafka topic. It receives t
 ![Create lambda](images/askSorcerer-create.png)
 
 ### Add the Python Code:
+
+- In your workspace, create a new directory `sorcerer` as the working directory for this section
+```
+cd ~
+mkdir sorcerer
+cd sorcerer
+```
 
 - In the workshop space, create a `lambda_function.py` file:
 ```
@@ -257,34 +266,31 @@ After the Lambda function is triggered, check the "npc-response" topic to see th
 
 ## Create the Second Lambda Function using Docker
 
-Create Docker Image for Lambda
+
+### Add Topics in Redpanda Serverless Platform  
+-  Open the Redpanda Serverless platform in your web browser.
+- Navigate to the "Topics" section.
+- Click on the "Create Topic" button.
+- Enter "npc2-request" as the topic name and click "Create".
+- Repeat steps 4 and 5 to create another topic named "npc-response".
+- Verify that both topics have been successfully created.
+
+
+### Building Langchain App
+
+In your workspace, create a new directory hero as the working directory for this section. This directory will be used for building an AI inference app using LangChain for you Hero NPC.
+  
 ```
-FROM public.ecr.aws/lambda/python:3.12
-
-# Copy requirements.txt
-COPY requirements.txt ${LAMBDA_TASK_ROOT}
-
-# Install the specified packages
-RUN pip install langchain_community
-RUN pip install langchain
-RUN pip install langchain_aws
-RUN pip install boto3
-RUN pip install botocore
-RUN pip install kafka-python-ng
-
-# Copy function code
-COPY lambda_function.py ${LAMBDA_TASK_ROOT}
-
-# Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
-CMD ["lambda_function.lambda_handler"]
-
+cd ~
+mkdir hero
+cd hero
 ```
 
-Create lambda_function.py:
+- Create a file named `lambda_function.py`:
 
 ```
 import json
-import os
+import base64 
 import boto3
 from kafka import KafkaProducer
 from langchain_community.llms import Bedrock
@@ -292,8 +298,8 @@ from langchain_aws import BedrockLLM
 from langchain_core.prompts import PromptTemplate
 
 # Secret Manager setup
-secret_name = "demo/redpanda/rpg"
-region_name = "us-east-2"
+secret_name = "workshop/redpanda/npc"
+region_name = "us-east-1"
 sessionSM = boto3.session.Session()
 client = sessionSM.client(service_name='secretsmanager', region_name=region_name)
 get_secret_value_response = client.get_secret_value(SecretId=secret_name)
@@ -316,39 +322,69 @@ producer = KafkaProducer(
 )
 
 # LangChain setup
-session = boto3.Session(region_name='us-east-1', aws_access_key_id=bedrock_key, aws_secret_access_key=bedrock_secret)
+session = boto3.Session(region_name='us-east-1')
 boto3_bedrock = session.client(service_name="bedrock-runtime")
 
 # Langchain LLM
 llm = BedrockLLM(client=boto3_bedrock, model_id="meta.llama2-13b-chat-v1", region_name='us-east-1')
 
-prompt_template = """You must provide an answer."
-                "context": "You are a hero who lives in the fantasy world, you just defeated a monster, has been asked a question.sound more upbeat tone ."
-    user: {input_query}
-    """
+def prepare_prompt():
+    prompt_template = """You must provide an answer in under 5 sentences."
+                    "context": "You are a hero who lives in the fantasy world, you just defeated a monster, has been asked a question.sound more upbeat tone ."
+        user: {input_query}
+        """
 
-PROMPT = PromptTemplate(input_variables=["input_query"], template=prompt_template)
-chain = PROMPT | llm
+    PROMPT = PromptTemplate(input_variables=["input_query"], template=prompt_template)
+    return PROMPT
 
 def lambda_handler(event, context):
-    print(f'event message: {event}')
-    for record in event['Records']:
-        question = record['value']  # Adjust based on actual message format
-        print(f"Received message: {question}")
-        response_msg = query_data(question)
-        print(f'Response message: {response_msg}')
-        # Send response back via Kafka
-        message_data = {
-            "who": "npc1",
-            "msg": response_msg
-        }
-        producer.send('rpg-response', message_data)
-        producer.flush()
-        producer.close()
+    for topic_partition, records in event['records'].items():
+        for record in records:
+            question = base64.b64decode(record['value'])  
+            print(f"Received message: {question}")
+            response_msg = query_data(prepare_prompt(),question)
+            print(f'Response message: {response_msg}')
+            # Send response back via Kafka
+            message_data = {
+                "who": "npc1",
+                "msg": response_msg
+            }
+            producer.send('rpg-response', message_data)
+            producer.flush()
 
-def query_data(query):
+
+def query_data(prompt, query):
+    chain = prompt | llm
     response_msg = chain.invoke({"input_query": query})
     return response_msg
+```
+
+### Package LangChain Application in container
+
+Package the LangChain application in a Docker container to ensure consistent and reliable deployment across different environments. Here it will be used to deploy in Lambda
+
+- Create a file name `Dockerfile` 
+  
+```
+FROM public.ecr.aws/lambda/python:3.12
+
+# Copy requirements.txt
+# COPY requirements.txt ${LAMBDA_TASK_ROOT}
+
+# Install the specified packages
+RUN pip install langchain_community
+RUN pip install langchain
+RUN pip install langchain_aws
+RUN pip install boto3
+RUN pip install botocore
+RUN pip install kafka-python-ng
+
+# Copy function code
+COPY lambda_function.py ${LAMBDA_TASK_ROOT}
+
+# Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
+CMD ["lambda_function.lambda_handler"]
+
 ```
 
 ### Build and Push the Docker Image to Amazon ECR
@@ -356,39 +392,87 @@ def query_data(query):
 - Build the Docker Image:
 Open a terminal and navigate to the directory containing your Dockerfile.
 Build the Docker image:
+
 ```
-docker build -t <your-image-name> .
+docker build -t askhero .
 ```
 
 Tag the Docker Image:
 ```
-docker tag <your-image-name> <your-ecr-repository-uri>
-```
+docker tag askhero <your-ecr-repository-uri>
 
 - Push the Docker Image to ECR:
 ```
-# Authenticate Docker to your Amazon ECR registry
-aws ecr get-login-password --region <your-region> | docker login --username AWS --password-stdin <your-ecr-repository-uri>
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <your-ecr-repository-uri>
 ```
+
+- By running this command, the Docker image built in the previous steps will be pushed to the specified ECR repository, making it available for deployment and use in other services or environments.
 
 ```
 docker push <your-ecr-repository-uri>
 ```
 
-###  Create the Lambda Function from the Docker Image
+### Create the Lambda Function from the Docker Image
+
 - Navigate to Lambda
 - Click the Create function button.
 - Select Container image.
-- Function name: Enter a name for your Lambda function (e.g., LangChainFunction).
+- Function name: `askhero`
 - Container image URI: Enter the URI of your Docker image in ECR.
-- Configure Function Settings:
+
+![Create lambda](images/cloud)
 
 Click Create function to create the function.
-##  Add Redpanda as a Trigger to Lambda Functions
-- In the Lambda dashboard, click on Functions in the left-hand navigation pane.
-- Select the Lambda function you created (e.g., 
-  - askSFunction
-  - LangChainFunction
+###  Update lambda configuration Permissions:
+
+- In the function's configuration, click on the "Configuration" tab.
+- Scroll down to the "Permissions" section, under Execution role section find the Role name, click on the `askHero-role-xxxxxx` to configure the permission.
+![Lambda Role in Config](images/askHero-lambda-role.png)
+
+- Add the necessary following policies
+  - **SecretsManagerReadWrite** - allows read/write access to AWS Secrets Manager.
+  - **AmazonBedrockFullAccess** - allow access to Bedrock models.
+- Click on the "Save" button to apply the changes. 
+
+![Lambda role permission](images/askHero-permission.png)
+
+- Set the timeout for your Lambda function to 30 seconds, still in the "Configuration" tab.
+- Scroll down to the "General configuration" section.
+- In the "Timeout" field, enter "30" (without quotes) to set the timeout to 30 seconds.
+- Click on the "Save" button to apply the changes.
+![Lambda timeout](images/askSorcerer-timeout.png)
+  
+This will ensure that your Lambda function has a maximum execution time of 30 seconds before it times out and update the permissions for your Lambda function to include the required access to AWS services and resources.
+
+### Test the Lambda Function
+To test the Lambda function with a test event, 
+
+- In the function's configuration, go to the "Test" tab.
+- Enter a name for the test event (e.g., "MockEvent").
+- In the event body, provide the test event JSON payload 
+
+```
+{
+  "eventSource": "SelfManagedKafka",
+  "bootstrapServers": "redpanda.example.com:9092",
+  "records": {
+    "npc2-request-0": [
+      {
+        "topic": "npc1-request",
+        "partition": 0,
+        "offset": 0,
+        "timestamp": 1718237343835,
+        "timestampType": "CREATE_TIME",
+        "key": "",
+        "value": "SG93J3MgeW91ciBkYXk/",
+        "headers": []
+      }
+    ]
+  }
+}
+```
+- Click on the "Save" button to save the test event, and click "Test" to execute the Lambda function with the test event
+![Lambda test](images/askSorcerer-test.png)
 
 ### Add a Trigger
 - In the Configuration tab, choose Triggers from the left-hand menu.
