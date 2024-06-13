@@ -400,8 +400,10 @@ docker build -t askhero .
 Tag the Docker Image:
 ```
 docker tag askhero <your-ecr-repository-uri>
+```
 
 - Push the Docker Image to ECR:
+  
 ```
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <your-ecr-repository-uri>
 ```
@@ -420,7 +422,7 @@ docker push <your-ecr-repository-uri>
 - Function name: `askhero`
 - Container image URI: Enter the URI of your Docker image in ECR.
 
-![Create lambda](images/cloud)
+![Create lambda](images/askHero-create.png)
 
 Click Create function to create the function.
 ###  Update lambda configuration Permissions:
@@ -440,7 +442,7 @@ Click Create function to create the function.
 - Scroll down to the "General configuration" section.
 - In the "Timeout" field, enter "30" (without quotes) to set the timeout to 30 seconds.
 - Click on the "Save" button to apply the changes.
-![Lambda timeout](images/askSorcerer-timeout.png)
+![Lambda timeout](images/askHero-timeout.png)
   
 This will ensure that your Lambda function has a maximum execution time of 30 seconds before it times out and update the permissions for your Lambda function to include the required access to AWS services and resources.
 
