@@ -90,7 +90,7 @@ def prepare_prompt(input_query):
     prompt = f"""You must provide an answer in under 5 sentences."
                 "context":  "You are a sorcerer who lives in the fantasy world, specialized in light magic, but you are familiar with other elements, you have been asked a question. You must provide an answer.
                 Your have a hot-cold personality type, normally being sharp but at some prompt suddenly becoming lovestruck. You are in your 20s, and female."
-    user: {input_query}
+    Question: {input_query}
     """
 
     # Format the request payload using the model's native structure.
@@ -189,8 +189,7 @@ Note:
 
 - Add the necessary following policies
   - **SecretsManagerReadWrite** - allows read/write access to AWS Secrets Manager.
-  - **AmazonS3ReadOnlyAccess** - if your Lambda needs to read from S3.
-  - **AmazonEC2ContainerRegistryReadOnly** - for pulling Docker images from ECR .
+  - **AmazonBedrockFullAccess** - allow access to Bedrock models.
 - Click on the "Save" button to apply the changes. 
 
 ![Lambda role permission](images/askSorcerer-permission.png)
@@ -236,12 +235,10 @@ To test the Lambda function with a test event,
 ### Configure the Trigger for the Lambda Function
 To configure the trigger for the Lambda function and connect to the topic in Redpanda Serverless using Kafka endpoint, follow these steps:
 
-1. Open the AWS Management Console and navigate to the Lambda service.
-2. Select the Lambda function you want to configure the trigger for (e.g., askSorcerer).
-3. In the function's configuration, go to the "Triggers" tab.
-4. Click on the "Add trigger" button.
-5. For the trigger configuration, choose "Kafka".
-6. Enter the required details:
+- In the function's configuration, go to the "Triggers" tab.
+- Click on the "Add trigger" button.
+- For the trigger configuration, choose "Kafka".
+- Enter the required details:
     - **Bootstrap Server**: Provide the Kafka endpoint of your Redpanda Serverless cluster.
     - **Kafka topic**: Specify the name of the topic you want the Lambda function to subscribe to `npc2-request`.
     - **Batch size**: Set the batch size to 1 to retrieve one record at a time.
@@ -329,9 +326,8 @@ boto3_bedrock = session.client(service_name="bedrock-runtime")
 llm = BedrockLLM(client=boto3_bedrock, model_id="meta.llama2-13b-chat-v1", region_name='us-east-1')
 
 def prepare_prompt():
-    prompt_template = """You must provide an answer in under 5 sentences."
-                    "context": "You are a hero who lives in the fantasy world, you just defeated a monster, has been asked a question.sound more upbeat tone ."
-        user: {input_query}
+    prompt_template = """You are a hero who lives in a fantasy world. You have just defeated a monster and are in high spirits. Please answer the following question in under 5 sentences and in an upbeat tone:."
+        Question: {input_query}
         """
 
     PROMPT = PromptTemplate(input_variables=["input_query"], template=prompt_template)
@@ -357,6 +353,7 @@ def query_data(prompt, query):
     chain = prompt | llm
     response_msg = chain.invoke({"input_query": query})
     return response_msg
+
 ```
 
 ### Package LangChain Application in container
@@ -420,9 +417,12 @@ docker push <your-ecr-repository-uri>
 - Click the Create function button.
 - Select Container image.
 - Function name: `askhero`
-- Container image URI: Enter the URI of your Docker image in ECR.
 
 ![Create lambda](images/askHero-create.png)
+
+- Container image URI: Enter the URI of your Docker image in ECR.
+
+![Select image](images/askHero-container-select.png)
 
 Click Create function to create the function.
 ###  Update lambda configuration Permissions:
@@ -476,16 +476,29 @@ To test the Lambda function with a test event,
 - Click on the "Save" button to save the test event, and click "Test" to execute the Lambda function with the test event
 ![Lambda test](images/askSorcerer-test.png)
 
-### Add a Trigger
-- In the Configuration tab, choose Triggers from the left-hand menu.
-- Click the Add trigger button.
+### Configure the Trigger for the Lambda Function
+To configure the trigger for the Lambda function and connect to the topic in Redpanda Serverless using Kafka endpoint, follow these steps:
 
-### Deploy the pipeline
-- For Trigger configuration, choose Kafka.
+- In the function's configuration, go to the "Triggers" tab.
+- Click on the "Add trigger" button.
+- For the trigger configuration, choose "Kafka".
 - Enter the required details:
-- Boostrap Server: Provide the ARN of your Kafka cluster.
-- Kafka topic: Specify the topic your Lambda function should subscribe to.
-- Batch size: Set the number of records to retrieve in each batch.
-- Starting position: Choose where to start reading messages (e.g., TRIM_HORIZON to start from the beginning or LATEST to start from the latest message).
-- Add Security Manager
-- Click Add to attach the trigger to your Lambda function.
+    - **Bootstrap Server**: Provide the Kafka endpoint of your Redpanda Serverless cluster.
+    - **Kafka topic**: Specify the name of the topic you want the Lambda function to subscribe to `npc1-request`.
+    - **Batch size**: Set the batch size to 1 to retrieve one record at a time.
+    - **Starting position**: Choose where to start reading messages, LATEST to start from the latest message.
+    - **Authentication**: Select `SASL_SCRAM_256_AUTH` as the authentication mechanism.
+    - **Secrets Manager key**: Enter the key **workshop/redpanda/lambda** for the Secrets Manager secret.
+
+4. Click on the "Add" button to attach the trigger to your Lambda function.
+![Lambda trigger](images/askHero-trigger.png)
+
+This configuration will enable your Lambda function to receive messages from the specified Kafka topic in Redpanda Serverless, with a batch size of 1 record at a time, using SASL/SCRAM authentication and retrieving messages starting from the specified position.
+
+### Test the result
+Use the Redpanda Serverless console to post a text message in the "npc1-request" topic. Enter the value "how's your day" as the message content.
+
+![Redpanda hero question](images/rp-test-question-hero.png)
+
+After the Lambda function is triggered, check the "npc-response" topic to see the result.
+![Redpanda response](images/rp-topic-response-hero.png)
