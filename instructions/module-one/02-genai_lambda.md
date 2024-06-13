@@ -171,7 +171,6 @@ Note:
 - Scroll down to the "Function code" section and click on the "Upload" button.
 - Choose the lambda_libs.zip file from your local machine and click on the "Open" button.
 - Wait for the upload to complete, and then click on the "Save" button to apply the changes.
-![Lambda create](images/askSorcerer-create.png)
 
 ###  Update lambda configuration Permissions:
 
@@ -223,7 +222,7 @@ To test the Lambda function with a test event,
 }
 ```
 - Click on the "Save" button to save the test event, and click "Test" to execute the Lambda function with the test event
-![Lambda test](images/askSorcerer-timeout.png)
+![Lambda test](images/askSorcerer-test.png)
 
 ### Configure the Trigger for the Lambda Function
 To configure the trigger for the Lambda function and connect to the topic in Redpanda Serverless using Kafka endpoint, follow these steps:
@@ -257,6 +256,7 @@ After the Lambda function is triggered, check the "npc-response" topic to see th
 
 
 ## Create the Second Lambda Function using Docker
+
 Create Docker Image for Lambda
 ```
 FROM public.ecr.aws/lambda/python:3.12
