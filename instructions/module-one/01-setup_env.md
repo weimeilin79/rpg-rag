@@ -108,24 +108,24 @@ On the final page, you will see the user’s access key ID and secret access key
 - For our workshop, we will be using the serverless platform. To start using Redpanda Serverless, [sign up](https://cloud.redpanda.com/sign-up/) for a free trial. Each trial supports five Serverless clusters. 
 
 - Click on the default namespace and enter the welcome cluster
-![Serverless Overview](images/rp-overview.png)
+![Serverless Overview](../images/rp-overview.png)
 
 NOTE: You have the ability to create multiple clusters under the namespace, it's great for projects that don’t need a dedicated cluster all the time, spiky workloads and needed separate virtual cluster for topic management.
 
 ### Get Redpanda bootstrap URL
 - In Overview, under How to connect, click on the `Kafka API`, you'll find the **Bootstrap server URL**, make sure you save it somewhere for later.
-![Redpanda Bootstrap URL](images/rp-bootstrap.png)
+![Redpanda Bootstrap URL](../images/rp-bootstrap.png)
 
 ### Securing Redpanda
 - Configure authentication by going to security and create a new user. 
 - Set the username to `workshop`, password to `1234qwer`
-![Serverless Create new user](images/rp-create-user.png)
+![Serverless Create new user](../images/rp-create-user.png)
 
 - Access-control lists (ACLs) are the primary mechanism used by Redpanda to manage user permissions. On the top tab, click **ACL** and click on the `workshop` principle that you have just created
-![Serverless Create ACL](images/rp-create-acl.png)
+![Serverless Create ACL](../images/rp-create-acl.png)
 
 - Access-control lists (ACLs) are the primary mechanism used by Redpanda to manage user permissions. In the configuration page, chose to grant all permission and click OK to save. 
-![Serverless Config ACL](images/rp-acl-config.png)
+![Serverless Config ACL](../images/rp-acl-config.png)
 
 
 ## Setup Secret Manager
@@ -147,11 +147,11 @@ Let's get started!
     - REDPANDA_SERVER :  Redpanda Bootstrap server URL 
     - REDPANDA_USER : workshop
     - REDPANDA_PWD : 1234qwer
-![Secrets manager configurations](images/secretsmanager-config.png)  
+![Secrets manager configurations](../images/secretsmanager-config.png)  
 - Name the Secret name : workshop/redpanda/npc and go through the steps with default value until you reach step Review, click `store` button to finish setting up the secret.
-![Secrets manager name](images/secretsmanager-name.png)  
+![Secrets manager name](../images/secretsmanager-name.png)  
 - You'll see the secret created.
-![Secrets manager list](images/secretsmanager-list.png)  
+![Secrets manager list](../images/secretsmanager-list.png)  
 lm
 - Create another new secret called `workshop/redpanda/lambda` for the lambda trigger, repeat above steps with following configuration:
     - username : workshop
@@ -167,10 +167,10 @@ Next, create a workspace for the Redpanda workshop, follow these steps:
   - Select "t3.small" as the instance type.
   - Set the timeout value to 4 hours.
 -  Review the configuration and click on the "Create environment" button.
-![Cloud9 Setup](images/cloud9-setup.png)
+![Cloud9 Setup](../images/cloud9-setup.png)
 
 -  Wait for the workspace to be created. Once it's ready, you can access it by clicking on the "Open IDE" button.
-![Cloud9 Setup](images/ccloud9-list.png)
+![Cloud9 Setup](../images/ccloud9-list.png)
 
 Now you have a Cloud9 workspace set up for the Redpanda workshop. You can use this workspace to follow along with the instructions and complete the workshop tasks.
 

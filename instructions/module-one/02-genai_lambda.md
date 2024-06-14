@@ -19,7 +19,7 @@ The Lambda function is triggered by messages from the Kafka topic. It receives t
 - Repeat last to create another topic named "npc-response".
 - Verify that both topics have been successfully created.
 
-![Redpanda Serverless Topics](images/rp-npc2-topics.png)
+![Redpanda Serverless Topics](../images/rp-npc2-topics.png)
 
 Now you have added the necessary topics to Redpanda Serverless for your Lambda functions to communicate with.
 
@@ -34,12 +34,12 @@ Now you have added the necessary topics to Redpanda Serverless for your Lambda f
 **Repository name**: `redpanda-workshop`.
 **Visibility settings**:  `Private`, The repository is only accessible to your AWS account.
 
-![ACR config](images/acr_create.png)
+![ACR config](../images/acr_create.png)
 
 - Review your settings and click the Create repository button.
 - Copy the URI and have it handy
 
-![ACR config](images/acr-uri.png)
+![ACR config](../images/acr-uri.png)
 
 ### Create the Lambda Function
  -  Sign in to the AWS Management Console:
@@ -52,7 +52,7 @@ Now you have added the necessary topics to Redpanda Serverless for your Lambda f
 - Runtime: Choose Python 3.12
 - Architecture : arm64
 - Click Create function to create the function.
-![Create lambda](images/askSorcerer-create.png)
+![Create lambda](../images/askSorcerer-create.png)
 
 ### Add the Python Code:
 
@@ -202,20 +202,20 @@ Note:
 
 - In the function's configuration, click on the "Configuration" tab.
 - Scroll down to the "Permissions" section, under Execution role section find the Role name, click on the `askSourcerer-role-xxxxxx` to configure the permission.
-![Lambda Role in Config](images/askSorcerer-lambda-role.png)
+![Lambda Role in Config](../images/askSorcerer-lambda-role.png)
 
 - Add the necessary following policies
   - **SecretsManagerReadWrite** - allows read/write access to AWS Secrets Manager.
   - **AmazonBedrockFullAccess** - allow access to Bedrock models.
 - Click on the "Save" button to apply the changes. 
 
-![Lambda role permission](images/askSorcerer-permission.png)
+![Lambda role permission](../images/askSorcerer-permission.png)
 
 - Set the timeout for your Lambda function to 30 seconds, still in the "Configuration" tab.
 - Scroll down to the "General configuration" section.
 - In the "Timeout" field, enter "30" (without quotes) to set the timeout to 30 seconds.
 - Click on the "Save" button to apply the changes.
-![Lambda timeout](images/askSorcerer-timeout.png)
+![Lambda timeout](../images/askSorcerer-timeout.png)
   
 This will ensure that your Lambda function has a maximum execution time of 30 seconds before it times out and update the permissions for your Lambda function to include the required access to AWS services and resources.
 
@@ -247,7 +247,7 @@ To test the Lambda function with a test event,
 }
 ```
 - Click on the "Save" button to save the test event, and click "Test" to execute the Lambda function with the test event
-![Lambda test](images/askSorcerer-test.png)
+![Lambda test](../images/askSorcerer-test.png)
 
 ### Configure the Trigger for the Lambda Function
 To configure the trigger for the Lambda function and connect to the topic in Redpanda Serverless using Kafka endpoint, follow these steps:
@@ -264,18 +264,18 @@ To configure the trigger for the Lambda function and connect to the topic in Red
     - **Secrets Manager key**: Enter the key **workshop/redpanda/lambda** for the Secrets Manager secret.
 
 7. Click on the "Add" button to attach the trigger to your Lambda function.
-![Lambda trigger](images/askSorcerer-trigger.png)
+![Lambda trigger](../images/askSorcerer-trigger.png)
 
 This configuration will enable your Lambda function to receive messages from the specified Kafka topic in Redpanda Serverless, with a batch size of 1 record at a time, using SASL/SCRAM authentication and retrieving messages starting from the specified position.
 
 ### Test the result
 Use the Redpanda Serverless console to post a text message in the "npc2-request" topic. Enter the value "how's your day" as the message content.
 
-![Redpanda question](images/rp-test-question.png)
-![Redpanda question create](images/rp-test-value.png)
+![Redpanda question](../images/rp-test-question.png)
+![Redpanda question create](../images/rp-test-value.png)
 
 After the Lambda function is triggered, check the "npc-response" topic to see the result.
-![Redpanda response](images/rp-topic-response.png)
+![Redpanda response](../images/rp-topic-response.png)
 
 
 ## Create the Second Lambda Function using Docker
@@ -434,31 +434,31 @@ docker push <your-ecr-repository-uri>
 - Select Container image.
 - Function name: `askhero`
 
-![Create lambda](images/askHero-create.png)
+![Create lambda](../images/askHero-create.png)
 
 - Container image URI: Enter the URI of your Docker image in ECR.
 
-![Select image](images/askHero-container-select.png)
+![Select image](../images/askHero-container-select.png)
 
 Click Create function to create the function.
 ###  Update lambda configuration Permissions:
 
 - In the function's configuration, click on the "Configuration" tab.
 - Scroll down to the "Permissions" section, under Execution role section find the Role name, click on the `askHero-role-xxxxxx` to configure the permission.
-![Lambda Role in Config](images/askHero-lambda-role.png)
+![Lambda Role in Config](../images/askHero-lambda-role.png)
 
 - Add the necessary following policies
   - **SecretsManagerReadWrite** - allows read/write access to AWS Secrets Manager.
   - **AmazonBedrockFullAccess** - allow access to Bedrock models.
 - Click on the "Save" button to apply the changes. 
 
-![Lambda role permission](images/askHero-permission.png)
+![Lambda role permission](../images/askHero-permission.png)
 
 - Set the timeout for your Lambda function to 30 seconds, still in the "Configuration" tab.
 - Scroll down to the "General configuration" section.
 - In the "Timeout" field, enter "30" (without quotes) to set the timeout to 30 seconds.
 - Click on the "Save" button to apply the changes.
-![Lambda timeout](images/askHero-timeout.png)
+![Lambda timeout](../images/askHero-timeout.png)
   
 This will ensure that your Lambda function has a maximum execution time of 30 seconds before it times out and update the permissions for your Lambda function to include the required access to AWS services and resources.
 
@@ -490,7 +490,7 @@ To test the Lambda function with a test event,
 }
 ```
 - Click on the "Save" button to save the test event, and click "Test" to execute the Lambda function with the test event
-![Lambda test](images/askSorcerer-test.png)
+![Lambda test](../images/askSorcerer-test.png)
 
 ### Configure the Trigger for the Lambda Function
 To configure the trigger for the Lambda function and connect to the topic in Redpanda Serverless using Kafka endpoint, follow these steps:
@@ -507,14 +507,14 @@ To configure the trigger for the Lambda function and connect to the topic in Red
     - **Secrets Manager key**: Enter the key **workshop/redpanda/lambda** for the Secrets Manager secret.
 
 - Click on the "Add" button to attach the trigger to your Lambda function.
-![Lambda trigger](images/askHero-trigger.png)
+![Lambda trigger](../images/askHero-trigger.png)
 
 This configuration will enable your Lambda function to receive messages from the specified Kafka topic in Redpanda Serverless, with a batch size of 1 record at a time, using SASL/SCRAM authentication and retrieving messages starting from the specified position.
 
 ### Test the result
 Use the Redpanda Serverless console to post a text message in the "npc1-request" topic. Enter the value "Have you seen monster before?" as the message content.
 
-![Redpanda hero question](images/rp-test-question-hero.png)
+![Redpanda hero question](../images/rp-test-question-hero.png)
 
 After the Lambda function is triggered, check the "npc-response" topic to see the result.
-![Redpanda response](images/rp-topic-response-hero.png)
+![Redpanda response](../images/rp-topic-response-hero.png)

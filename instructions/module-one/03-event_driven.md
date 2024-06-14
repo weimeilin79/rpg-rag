@@ -29,26 +29,26 @@ First, you'll upload the Redpanda binary file to S3
 - Click the Create bucket button, with Bucket type: General Purpose
 - Enter a name `redpanda-connect` for your bucket,  go ahead with default values and create.
   
-![Create Bucket](images/s3-bucket-create.png)
+![Create Bucket](../images/s3-bucket-create.png)
 
 - Now, upload the binary, click the Upload button.
 - Click Add files and select the `redpanda-connect-lambda-al2_4.27.0_linux_arm64.zip`.
 - Click Upload to upload the file to S3.
 - Copy the URL for this file in S3.
-![Upload Binary](images/s3-upload.png)
+![Upload Binary](../images/s3-upload.png)
 
 
 ### Use the ZIP File to Add a Layer to a Lambda Function
 
 - In the Lambda dashboard, click on Layers in the left-hand navigation pane.
-  ![Findlayer](images/lambda-find-layer.png)
+  ![Findlayer](../images/lambda-find-layer.png)
 - Click the Create layer button.
 **Name**: `redpanda-connect-binary`.
 **Upload**: Under the Code entry type section, select Upload a file from S3.
 **S3 Link**: Choose Amazon S3 location and provide the link to the ZIP file you uploaded (The URL that was copied in previous step).
 **Runtime**: Select the runtime `Amazon Linux 2` for the layer (e.g., Go 1.x).
 - Click the Create button to create the layer.
-![Create new layer](images/lambda-create-layer.png)
+![Create new layer](../images/lambda-create-layer.png)
 
 ### Create a New Lambda Function:
 
@@ -59,7 +59,7 @@ First, you'll upload the Redpanda binary file to S3
 - Architecture: arm64
 - Click Create function to create the function.
 
-![Create new function](images/lambda-create-reroute.png)
+![Create new function](../images/lambda-create-reroute.png)
 
 
 ### Redpanda Connect in Lambda
@@ -120,7 +120,7 @@ output:
       '@service': benthos
 
 ```
-![Redpanda Connect Config](images/lambda-config-code.png)
+![Redpanda Connect Config](../images/lambda-config-code.png)
 
 
 ### Add the Layer to Your Go Lambda Function
@@ -128,27 +128,27 @@ output:
 - In the Code tab, scroll down.
 - Click the Add a layer button.
 - 
-![Layer Button](images/lambda-layer-button.png)
+![Layer Button](../images/lambda-layer-button.png)
 
 - Choose **Custom layers** and select the layer you created .
 
-![Add Layer](images/lambda-add-layer.png)
+![Add Layer](../images/lambda-add-layer.png)
 
 - In the Code Source tab, if you see the __Changes not deployed__, click **Deploy** to update your function
-![Deploy Reroute function](images/llambda-deploy-reroute.png)
+![Deploy Reroute function](../images/llambda-deploy-reroute.png)
 
 
 ###  Update lambda configuration Permissions:
 
 - In the function's configuration, click on the "Configuration" tab.
 - Scroll down to the "Permissions" section, under Execution role section find the Role name, click on the `askHero-role-xxxxxx` to configure the permission.
-![Lambda Role in Config](images/askHero-lambda-role.png)
+![Lambda Role in Config](../images/askHero-lambda-role.png)
 
 - Add the necessary following policies
   - **SecretsManagerReadWrite** - allows read/write access to AWS Secrets Manager.
 - Click on the "Save" button to apply the changes. 
 
-![Lambda role permission](images/askHero-permission.png)
+![Lambda role permission](../images/askHero-permission.png)
 
 
 ### Configure the Trigger for the Lambda Function
@@ -165,7 +165,7 @@ To configure the trigger for the Lambda function and connect to the topic in Red
     - **Authentication**: Select `SASL_SCRAM_256_AUTH` as the authentication mechanism.
     - **Secrets Manager key**: Enter the key **workshop/redpanda/lambda** for the Secrets Manager secret.
 
-![Add Trigger](images/lambda-trigger-reroute.png)
+![Add Trigger](../images/lambda-trigger-reroute.png)
 
 
 ### Test the result
@@ -179,11 +179,11 @@ To configure the trigger for the Lambda function and connect to the topic in Red
 ```
 
 - Remember to select **JSON** as the value type
-![Redpanda question](images/rp-reroute-produce.pngrp-reroute-produce.png)
-![Redpanda question create](images/rp-reroute-test.png)
+![Redpanda question](../images/rp-reroute-produce.pngrp-reroute-produce.png)
+![Redpanda question create](../images/rp-reroute-test.png)
 
 After the Lambda function is triggered, check the "npc1-request" topic to see the result.
-![Redpanda response](images/rp-topic-response-reroute.png)
+![Redpanda response](../images/rp-topic-response-reroute.png)
 
 
 ### Clone the GitHub Repository and Start the Node.js App
@@ -209,14 +209,14 @@ node index.js
 
 With this Node.js application in place, you can now start running the frontend of your prototype game. On the top menu bar, click on Preview > Preview Running Application  
 
-![Add Trigger](images/node-preview.png)
+![Add Trigger](../images/node-preview.png)
 
 You'll see the RPG running,and go ahead start having conversation with the Hero and Sorcerer NPC.
 
-![RPG Game](images/node-rpg.png)
+![RPG Game](../images/node-rpg.png)
 
 ## Challenge: add another NPC 
 
 Did you see there is another Goddess in the game, can you please help to create the backend AI inference application?
 > Hint: she is **npc3**
-![RPG Game](images/node-rpg-goddess.png)
+![RPG Game](../images/node-rpg-goddess.png)
