@@ -496,7 +496,7 @@ To configure the trigger for the Lambda function and connect to the topic in Red
 This configuration will enable your Lambda function to receive messages from the specified Kafka topic in Redpanda Serverless, with a batch size of 1 record at a time, using SASL/SCRAM authentication and retrieving messages starting from the specified position.
 
 ### Test the result
-Use the Redpanda Serverless console to post a text message in the "npc1-request" topic. Enter the value "how's your day" as the message content.
+Use the Redpanda Serverless console to post a text message in the "npc1-request" topic. Enter the value "Have you seen monster before?" as the message content.
 
 ![Redpanda hero question](images/rp-test-question-hero.png)
 
