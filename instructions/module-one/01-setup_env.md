@@ -186,7 +186,10 @@ Next, create a workspace for the Redpanda workshop, follow these steps:
   - Select "t3.small" as the instance type.
   - Set the timeout value to 4 hours.
 -  Review the configuration and click on the "Create environment" button.
+![Cloud9 Setup](images/cloud9-setup.png)
+
 -  Wait for the workspace to be created. Once it's ready, you can access it by clicking on the "Open IDE" button.
+![Cloud9 Setup](images/ccloud9-list.png)
 
 Now you have a Cloud9 workspace set up for the Redpanda workshop. You can use this workspace to follow along with the instructions and complete the workshop tasks.
 

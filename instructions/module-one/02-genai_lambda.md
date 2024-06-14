@@ -16,7 +16,7 @@ The Lambda function is triggered by messages from the Kafka topic. It receives t
 - Navigate to the "Topics" section.
 - Click on the "Create Topic" button.
 - Enter "npc2-request" as the topic name and click "Create".
-- Repeat steps 4 and 5 to create another topic named "npc-response".
+- Repeat last to create another topic named "npc-response".
 - Verify that both topics have been successfully created.
 
 ![Redpanda Serverless Topics](images/rp-npc2-topics.png)
@@ -268,9 +268,8 @@ After the Lambda function is triggered, check the "npc-response" topic to see th
 -  Open the Redpanda Serverless platform in your web browser.
 - Navigate to the "Topics" section.
 - Click on the "Create Topic" button.
-- Enter "npc2-request" as the topic name and click "Create".
-- Repeat steps 4 and 5 to create another topic named "npc-response".
-- Verify that both topics have been successfully created.
+- Enter "npc1-request" as the topic name and click "Create".
+- Verify that thw topics have been successfully created.
 
 
 ### Building Langchain App
