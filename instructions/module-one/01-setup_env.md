@@ -98,26 +98,7 @@ On the final page, you will see the user’s access key ID and secret access key
 - Amazon Bedrock is a fully managed service that provides access to foundation models available via an API. With Bedrock, you can choose from a variety of models to find the one that’s best suited for your use case.
 - In US-EAST-1, go to https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess and enable the following model.
 
-## Setup a Container Registry
 
-
-### Navigate to Amazon ECR
-- In the AWS Management Console, select Services.
-- Under the "Containers" category, choose Elastic Container Registry.
-- In the Amazon ECR dashboard, click on Repositories in the left-hand navigation pane.
-- Click the Create repository button at the top of the page.
-
-### Configure the Repository
-
-**Repository name**: `redpanda-workshop`.
-**Visibility settings**:  `Private`, The repository is only accessible to your AWS account.
-
-![ACR config](images/acr_create.png)
-
-- Review your settings and click the Create repository button.
-- Copy the URI and have it handy
-
-![ACR config](images/acr-uri.png)
 
 ## Sign up for Redpanda Serverless Cluster
 

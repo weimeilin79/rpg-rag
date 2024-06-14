@@ -23,6 +23,23 @@ The Lambda function is triggered by messages from the Kafka topic. It receives t
 
 Now you have added the necessary topics to Redpanda Serverless for your Lambda functions to communicate with.
 
+### Setup a Container Registry
+- In the AWS Management Console, select Services.
+- Under the "Containers" category, choose Elastic Container Registry.
+- In the Amazon ECR dashboard, click on Repositories in the left-hand navigation pane.
+- Click the Create repository button at the top of the page.
+
+### Configure the Repository
+
+**Repository name**: `redpanda-workshop`.
+**Visibility settings**:  `Private`, The repository is only accessible to your AWS account.
+
+![ACR config](images/acr_create.png)
+
+- Review your settings and click the Create repository button.
+- Copy the URI and have it handy
+
+![ACR config](images/acr-uri.png)
 
 ### Create the Lambda Function
  -  Sign in to the AWS Management Console:
@@ -489,7 +506,7 @@ To configure the trigger for the Lambda function and connect to the topic in Red
     - **Authentication**: Select `SASL_SCRAM_256_AUTH` as the authentication mechanism.
     - **Secrets Manager key**: Enter the key **workshop/redpanda/lambda** for the Secrets Manager secret.
 
-4. Click on the "Add" button to attach the trigger to your Lambda function.
+- Click on the "Add" button to attach the trigger to your Lambda function.
 ![Lambda trigger](images/askHero-trigger.png)
 
 This configuration will enable your Lambda function to receive messages from the specified Kafka topic in Redpanda Serverless, with a batch size of 1 record at a time, using SASL/SCRAM authentication and retrieving messages starting from the specified position.

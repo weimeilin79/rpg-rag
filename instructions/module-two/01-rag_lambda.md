@@ -1,85 +1,320 @@
-### CLoud 9 
+## Load Documents into Vector Data store
+TODO: use ENV Variable instead
 
+
+### Setup S3 bucket to upload story documents
+
+- Open the Amazon S3 console at https://console.aws.amazon.com/s3/.
+- Click on the "Create bucket" button.
+- Click the Create bucket button, with Bucket type: General Purpose
+- Enter a name `redpanda-connect` for your bucket, go ahead with default values and create.
+Once the bucket is created, you can use it to upload the story documents.
+
+### Create a Collection in OpenSearch Serverless
+
+- Navigate to Amazon OpenSearch Service console at https://console.aws.amazon.com/opensearch-service/.
+- Select **Serverless** and click Get Started.
+- In the Serverless dashboard, click on **create collections** button.
+![openSearch create](images/openSearch-create-collection.png)
+- On the "Create collection" page, provide the following details, and submit.
+    - Collection name: Enter name `rpgstories` for your collection.
+    - Collection type: Select **Vector search**
+    - Security : Choose **Easy create**
+![openSearch config](images/openSearch-collection-config.png)
+
+Click on the "Create collection" button to create the collection.
+
+### Add Index to the Collection
+
+- On the collection details page, click on the Indexes tab.
+- Click on the **Create vector index** button.
+- Select the **JSON** tab
+- Enter `background_index` as the Vector index name
+- Create index with following setting and 
+
+```
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    }
+  },
+  "mappings": {
+    "properties": {
+      "text": {
+        "type": "text"
+      },
+      "embedding": {
+        "type": "knn_vector",
+        "dimension": 1536
+      }
+    }
+  }
+}
+```
+![openSearch config](images/openSearch-collection-index.png)
+
+Once the collection and index is created, you can start adding documents to it and perform various operations like searching, filtering, and aggregating data.
+
+
+
+### Setup a Container Registry
+- In the AWS Management Console, select Services.
+- Under the "Containers" category, choose Elastic Container Registry.
+- In the Amazon ECR dashboard, click on Repositories in the left-hand navigation pane.
+- Click the Create repository button at the top of the page.
+
+### Configure the Repository
+
+**Repository name**: `load_stories`.
+**Visibility settings**:  `Private`, The repository is only accessible to your AWS account.
+
+- Review your settings and click the Create repository button.
+- Copy the URI and have it handy 
+
+![ACR config](images/acr-uri-loader.png)
+
+
+### Building the document loader application
+
+In your workspace, create a new directory `loader` as the working directory for this section. This directory will be used for building an AI inference app using LangChain for you Hero NPC.
+  
+```
+cd ~
+mkdir loader
+cd loader
+```
+
+- Create a file named `lambda_function.py`:
+
+```
+import boto3
+import json
+from opensearchpy import OpenSearch, RequestsHttpConnection, AWSV4SignerAuth
+from langchain_community.embeddings import BedrockEmbeddings
+from opensearchpy.helpers import bulk, BulkIndexError
+
+# OpenSearch configuration
+host = '<YOUR_OPENSEARCH_URL>'
+region = 'us-east-1'
+service = 'aoss'
+index_name = 'backgorund_index'
+
+# Initialize Boto3 session
+session = boto3.Session()
+
+# Initialize OpenSearch client
+credentials = session.get_credentials()
+auth = AWSV4SignerAuth(credentials, region, service)
+client = OpenSearch(
+    hosts=[{'host': host, 'port': 443}],
+    http_auth=auth,
+    use_ssl=True,
+    verify_certs=True,
+    connection_class=RequestsHttpConnection
+)
+ # Initialize S3 client
+s3 = boto3.client('s3')
+bedrock = session.client(service_name="bedrock-runtime")
+
+# Initialize the BedrockEmbeddings model
+embeddings_model = BedrockEmbeddings(model_id="amazon.titan-embed-text-v1", client=bedrock)
+
+def lambda_handler(event, context):
+   
+    # Get the S3 bucket and object keys from the event
+    bucket = event['Records'][0]['s3']['bucket']['name']
+    keys = [record['s3']['object']['key'] for record in event['Records']]
+    
+    # List to store documents for bulk indexing
+    docs_to_index = []
+    
+    # Process each document
+    for key in keys:
+        print(f"Processing document: {key}")
+        # Read the document from S3
+        obj = s3.get_object(Bucket=bucket, Key=key)
+        document_content = obj['Body'].read().decode('utf-8')
+
+        # Create a document object
+        documents = [document_content]
+        texts = [doc for doc in documents]
+
+        # Generate embeddings for the document
+        embeddings = embeddings_model.embed_documents(texts)
+
+        # Prepare documents for indexing
+        for i, (doc, embedding) in enumerate(zip(documents, embeddings)):
+            doc_body = {
+                'text': doc,
+                'embedding': embedding
+            }
+            # Add the document to the bulk request
+            docs_to_index.append({
+                '_op_type': 'index',
+                '_index': index_name,
+                '_source': doc_body
+            })
+    
+    # Bulk insert documents and handle errors
+    try:
+        bulk(client, docs_to_index)
+        print("Documents indexed successfully.")
+    except BulkIndexError as e:
+        print(f"Bulk indexing error: {e}")
+        for error in e.errors:
+            print(error)
+
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Documents indexed successfully')
+    }
+```
+- Make sure you replace <YOUR_OPENSEARCH_URL> with your OpenSearch Serverless endpoint
+
+### Package Loader Application in container
+
+Package the LangChain application in a Docker container to ensure consistent and reliable deployment across different environments. Here it will be used to deploy in Lambda
+
+- Create a file name `Dockerfile` 
+  
+```
+FROM public.ecr.aws/lambda/python:3.12
+
+# Copy requirements.txt
+
+# Install the specified packages
+RUN pip install langchain_community
+RUN pip install langchain
+RUN pip install boto3
+RUN pip install botocore
+RUN pip install opensearch-py
+
+# Copy function code
+COPY lambda_function.py ${LAMBDA_TASK_ROOT}
+
+# Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
+CMD ["lambda_function.lambda_handler"]
+```
+
+
+### Build and Push the Docker Image to Amazon ECR
+- Build the Docker Image:
+Open a terminal and navigate to the directory containing your Dockerfile.
+Build the Docker image:
+
+```
+docker build -t load_stories .
+```
+
+Tag the Docker Image:
+```
+docker tag load_stories <your-ecr-repository-uri>
+```
+
+- Push the Docker Image to ECR:
+  
+```
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <your-ecr-repository-uri>
+```
+
+- By running this command, the Docker image built in the previous steps will be pushed to the specified ECR repository, making it available for deployment and use in other services or environments.
+
+```
+docker push <your-ecr-repository-uri>
+```
+
+### Create the Lambda Function from the Docker Image
+
+- Navigate to Lambda
+- Click the Create function button.
+- Select Container image.
+- Function name: `loader`
+- Container image URI: Enter the URI of your Docker image in ECR.
+
+![Select image](images/loader-container-select.png)
+
+Click Create function to create the function.
+###  Update lambda configuration Permissions:
+
+- In the function's configuration, click on the "Configuration" tab.
+- Scroll down to the "Permissions" section, under Execution role section find the Role name, click on the `loader-role-xxxxxx` to configure the permission.
+![Lambda Role in Config](images/loader-lambda-role.png)
+
+- Add the necessary following policies
+  - **AmazonS3FullAccess** - allows read/write access to S3 buckets.
+  - **AmazonBedrockFullAccess** - allow access to Bedrock models.
+- Add the Opensearch Serverless permission, under **Add permission**, choose inline policies
+![Add inlinepolicy](images/loader-lambda-inline-policy.png)
+- Grant all action by selecting **All OpernSearch Serverless actions (aoss.*)**
+- Assign all collection in the account
+![OpenSearch config](images/loader-lambda-opensearch-config.png)
+
+- Name the Policy Name to `OpenSearchServerlessAll`
+- Click on the "Create Policy" button to apply the changes. 
+![OpenSearch config](images/loader-lambda-opensearch-name.png) 
+
+![Lambda role permission](images/loader-permission.png)
+
+- Set the timeout for your Lambda function to 30 seconds, still in the "Configuration" tab.
+- Scroll down to the "General configuration" section.
+- In the "Timeout" field, enter "30" (without quotes) to set the timeout to 30 seconds.
+- Click on the "Save" button to apply the changes.
+  
+This will ensure that your Lambda function has a maximum execution time of 30 seconds before it times out and update the permissions for your Lambda function to include the required access to AWS services and resources.
+
+### Configure the Trigger for the Lambda Function
+To configure the trigger for the Lambda function and listens to any uploaded documents into the S3 bucket, follow these steps:
+
+- In the function's configuration, go to the "Triggers" tab.
+- Click on the "Add trigger" button.
+- For the trigger configuration, choose "S3".
+- Enter the required details:
+    - **Bucket**: Choose the `S3/redpanda-workshop` bucket.
+    - Check the acknowledgement box
+
+- Click on the "Add" button to attach the trigger to your Lambda function.
+![Lambda trigger](images/loader-trigger.png)
+
+### Load Story Documents
+To load the story documents into the S3 bucket, follow these steps:
+
+- Download the documents from the GitHub repository:
+    - In your laptop.
+    - Navigate to the directory where you want to download the documents.
+    - Run the following command to download the documents or manually download all files in the stories folder:
+      ```
+      git clone http://github.com/weimeilin79/xxxx/foldery
+      ```
+
+- Upload the downloaded documents to the S3 bucket:
+    - Open the AWS Management Console.
+    - Go to the S3 service.
+    - Select the `redpanda-connect` bucket.
+    - Click on the "Upload" button.
+    - Choose the downloaded documents from your local machine.
+    - Click on the "Upload" button to upload the documents to the S3 bucket.
+
+Once the documents are uploaded to the S3 bucket, you can proceed with further steps in your workflow.
+
+- Optional, in the OpenSearch Dashboard, under DevTool, check the number of document in the collection
+![File uploaded to S3](images/opensearch-dahsboard.png)
+
+```
+GET backgorund_index/_count
+```
 
 ### Update LangChain app with RAG by loading documents
 
 ### Update the bedrock one 
 
-To create a knowledge base
-Sign in to the AWS Management Console, and open the Amazon Bedrock console at https://console.aws.amazon.com/bedrock/.
-
-From the left navigation pane, select Knowledge base.
-
-In the Knowledge bases section, select Create knowledge base.
-
-On the Provide knowledge base details page, set up the following configurations:
-
-(Optional) In the Knowledge base details section, change the default name and provide a description for your knowledge base.
-
-In the IAM permissions section, choose an AWS Identity and Access Management (IAM) role that provides Amazon Bedrock permission to access other AWS services. You can let Amazon Bedrock create the service role or choose a custom role that you have created.
-
-(Optional) Add tags to your knowledge base. For more information, see Tag resources.
-
-Select Next.
-
-On the Set up data source page, provide the information for the data source to use for the knowledge base:
-
-(Optional) Change the default Data source name.
-
-Select Current account or Other account for Data source location
-
-Provide the S3 URI of the object containing the files for the data source that you prepared. If you selection Other account you may need to update the other account's Amazon S3 bucket policy, AWS KMS key policy, and the current account's Knowledge Base role.
-
-Note
-Choose an Amazon S3 bucket in the same region as the knowledge base that you're creating. Otherwise, your data source will fail to sync.
-
-If you encrypted your Amazon S3 data with a customer managed key, select Add customer-managed AWS KMS key for Amazon S3 data and choose a KMS key to allow Amazon Bedrock to decrypt it. For more information, see Encryption of information passed to Amazon OpenSearch Service.
-
-(Optional) To configure the following advanced settings, expand the Advanced settings - optional section.
-
-While converting your data into embeddings, Amazon Bedrock encrypts your data with a key that AWS owns and manages, by default. To use your own KMS key, expand Advanced settings, select Customize encryption settings (advanced), and choose a key. For more information, see Encryption of transient data storage during data ingestion.
-
-Choose from the following options for the Chunking strategy for your data source:
-
-Default chunking – By default, Amazon Bedrock automatically splits your source data into chunks, such that each chunk contains, at most, 300 tokens. If a document contains less than 300 tokens, then it is not split any further.
-
-Fixed size chunking – Amazon Bedrock splits your source data into chunks of the approximate size that you set. Configure the following options.
-
-Max tokens – Amazon Bedrock creates chunks that don't exceed the number of tokens that you choose.
-
-Overlap percentage between chunks – Each chunk overlaps with consecutive chunks by the percentage that you choose.
-
-No chunking – Amazon Bedrock treats each file as one chunk. If you choose this option, you may want to pre-process your documents by splitting them into separate files.
-
-Note
-You can't change the chunking strategy after you have created the data source.
-
-Select Next.
-
-In the Embeddings model section, choose a supported embeddings model to convert your data into vector embeddings for the knowledge base.
-
-In the Vector database section, choose one of the following options to store the vector embeddings for your knowledge base:
-
-Quick create a new vector store – Amazon Bedrock creates an Amazon OpenSearch Serverless vector search collection for you. With this option, a public vector search collection and vector index is set up for you with the required fields and necessary configurations. After the collection is created, you can manage it in the Amazon OpenSearch Serverless console or through the AWS API. For more information, see Working with vector search collections in the Amazon OpenSearch Service Developer Guide. If you select this option, you can optionally enable the following settings:
-
-To enable redundant active replicas, such that the availability of your vector store isn't compromised in case of infrastructure failure, select Enable redundancy (active replicas).
-
-Note
-We recommend that you leave this option disabled while you test your knowledge base. When you're ready to deploy to production, we recommend that you enable redundant active replicas. For information about pricing, see Pricing for OpenSearch Serverless
-
-To encrypt the automated vector store with a customer managed key select Add customer-managed KMS key for Amazon OpenSearch Serverless vector – optional and choose the key. For more information, see Encryption of information passed to Amazon OpenSearch Service.
-
-Select a vector store you have created – Select the service that contains a vector database that you have already created. Fill in the fields to allow Amazon Bedrock to map information from the knowledge base to your database, so that it can store, update, and manage embeddings. For more information about how these fields map to the fields that you created, see Set up a vector index for your knowledge base in a supported vector store.
-
-Note
-If you use a database in Amazon OpenSearch Serverless, Amazon Aurora, or MongoDB Atlas, you need to have configured the fields under Field mapping beforehand. If you use a database in Pinecone or Redis Enterprise Cloud, you can provide names for these fields here and Amazon Bedrock will dynamically create them in the vector store for you.
-
-Select Next.
-
-On the Review and create page, check the configuration and details of your knowledge base. Choose Edit in any section that you need to modify. When you are satisfied, select Create knowledge base.
-
-The time it takes to create the knowledge base depends on the amount of data you provided. When the knowledge base is finished being created, the Status of the knowledge base changes to Ready.
-
 
 
 ### deploy again, and run test
+
+
+
+
+
+
