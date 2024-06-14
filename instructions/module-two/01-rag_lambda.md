@@ -15,12 +15,12 @@ Once the bucket is created, you can use it to upload the story documents.
 - Navigate to Amazon OpenSearch Service console at https://console.aws.amazon.com/opensearch-service/.
 - Select **Serverless** and click Get Started.
 - In the Serverless dashboard, click on **create collections** button.
-![openSearch create](images/openSearch-create-collection.png)
+![openSearch create](../images/openSearch-create-collection.png)
 - On the "Create collection" page, provide the following details, and submit.
     - Collection name: Enter name `rpgstories` for your collection.
     - Collection type: Select **Vector search**
     - Security : Choose **Easy create**
-![openSearch config](images/openSearch-collection-config.png)
+![openSearch config](../images/openSearch-collection-config.png)
 
 Click on the "Create collection" button to create the collection.
 
@@ -53,7 +53,7 @@ Click on the "Create collection" button to create the collection.
   }
 }
 ```
-![openSearch config](images/openSearch-collection-index.png)
+![openSearch config](../images/openSearch-collection-index.png)
 
 Once the collection and index is created, you can start adding documents to it and perform various operations like searching, filtering, and aggregating data.
 
@@ -73,7 +73,7 @@ Once the collection and index is created, you can start adding documents to it a
 - Review your settings and click the Create repository button.
 - Copy the URI and have it handy 
 
-![ACR config](images/acr-uri-loader.png)
+![ACR config](../images/acr-uri-loader.png)
 
 
 ### Building the document loader application
@@ -233,29 +233,29 @@ docker push <your-ecr-repository-uri>
 - Function name: `loader`
 - Container image URI: Enter the URI of your Docker image in ECR.
 
-![Select image](images/loader-container-select.png)
+![Select image](../images/loader-container-select.png)
 
 Click Create function to create the function.
 ###  Update lambda configuration Permissions:
 
 - In the function's configuration, click on the "Configuration" tab.
 - Scroll down to the "Permissions" section, under Execution role section find the Role name, click on the `loader-role-xxxxxx` to configure the permission.
-![Lambda Role in Config](images/loader-lambda-role.png)
+![Lambda Role in Config](../images/loader-lambda-role.png)
 
 - Add the necessary following policies
   - **AmazonS3FullAccess** - allows read/write access to S3 buckets.
   - **AmazonBedrockFullAccess** - allow access to Bedrock models.
 - Add the Opensearch Serverless permission, under **Add permission**, choose inline policies
-![Add inlinepolicy](images/loader-lambda-inline-policy.png)
+![Add inlinepolicy](../images/loader-lambda-inline-policy.png)
 - Grant all action by selecting **All OpernSearch Serverless actions (aoss.*)**
 - Assign all collection in the account
-![OpenSearch config](images/loader-lambda-opensearch-config.png)
+![OpenSearch config](../images/loader-lambda-opensearch-config.png)
 
 - Name the Policy Name to `OpenSearchServerlessAll`
 - Click on the "Create Policy" button to apply the changes. 
-![OpenSearch config](images/loader-lambda-opensearch-name.png) 
+![OpenSearch config](../images/loader-lambda-opensearch-name.png) 
 
-![Lambda role permission](images/loader-permission.png)
+![Lambda role permission](../images/loader-permission.png)
 
 - Set the timeout for your Lambda function to 30 seconds, still in the "Configuration" tab.
 - Scroll down to the "General configuration" section.
@@ -275,7 +275,7 @@ To configure the trigger for the Lambda function and listens to any uploaded doc
     - Check the acknowledgement box
 
 - Click on the "Add" button to attach the trigger to your Lambda function.
-![Lambda trigger](images/loader-trigger.png)
+![Lambda trigger](../images/loader-trigger.png)
 
 ### Load Story Documents
 To load the story documents into the S3 bucket, follow these steps:
@@ -299,7 +299,7 @@ To load the story documents into the S3 bucket, follow these steps:
 Once the documents are uploaded to the S3 bucket, you can proceed with further steps in your workflow.
 
 - Optional, in the OpenSearch Dashboard, under DevTool, check the number of document in the collection
-![File uploaded to S3](images/opensearch-dahsboard.png)
+![File uploaded to S3](../images/opensearch-dahsboard.png)
 
 ```
 GET backgorund_index/_count
