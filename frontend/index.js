@@ -14,11 +14,14 @@ const kafka = new Kafka({
   });
 const producer = kafka.producer();
 const consumer = kafka.consumer({ groupId: 'rpg-group' });
-  
+const bonusConsumer = kafka.consumer({ groupId: 'bonus-group' });
+
 const setupKafka = async () => {
     await producer.connect();
     await consumer.connect();
+    await bonusConsumer.connect();
     await consumer.subscribe({ topic: 'rpg-response' });
+    await bonusConsumer.subscribe({ topic: 'bonus' });
 
     consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
@@ -27,6 +30,14 @@ const setupKafka = async () => {
           io.emit('receive-message', jsonData);  // Emit as a JavaScript object
         },
       });
+
+    bonusConsumer.run({
+        eachMessage: async ({ topic, partition, message }) => {
+          const value = message.value.toString();  
+          const jsonData = JSON.parse(value);  
+          io.emit('bonus-message', jsonData);  
+        },
+    });
   };
 
   setupKafka();
