@@ -63,8 +63,7 @@ First, you'll upload the Redpanda binary file to S3
 
 
 ### Redpanda Connect in Lambda
-- In the Lambda function editor, create a file `benthos.yaml` and enter the following code,
-  Make sure to replace your the <REDPANDA_BROKER_URL> and <REDPANDA_USER_PWD> with your Redpanda Broker URL and pwd to `1234qwer` :
+- In the Lambda function editor, create a file `benthos.yaml` and :
 ```
 pipeline:
   processors:
@@ -77,14 +76,14 @@ output:
         output:
           kafka_franz:
             seed_brokers:
-              - <REDPANDA_BROKER_URL>
+              - ${RP_BROKER}
             topic: npc1-request
             tls:
               enabled: true
             sasl:
               - mechanism: SCRAM-SHA-256
-                username: workshop
-                password: <REDPANDA_USER_PWD>
+                username: ${RP_USERNAME:workshop}
+                password: ${RP_PWD}
           processors:
             - type: bloblang
               bloblang: |
@@ -93,18 +92,30 @@ output:
         output:
           kafka_franz:
             seed_brokers:
-              - <REDPANDA_BROKER_URL>
+              - ${RP_BROKER}
             topic: npc2-request
             tls:
               enabled: true
             sasl:
               - mechanism: SCRAM-SHA-256
-                username: workshop
-                password: <REDPANDA_USER_PWD>
+                username: ${RP_USERNAME:workshop}
+                password: ${RP_PWD}
           processors:
             - type: bloblang
               bloblang: |
                 root = this.msg
+      - check: this.who == "npc3"
+        output:
+          kafka_franz:
+            seed_brokers:
+              - ${RP_BROKER}
+            topic: npc3-request
+            tls:
+              enabled: true
+            sasl:
+              - mechanism: SCRAM-SHA-256
+                username: ${RP_USERNAME:workshop}
+                password: ${RP_PWD}
           processors:
             - type: bloblang
               bloblang: |
@@ -122,6 +133,20 @@ output:
 ```
 ![Redpanda Connect Config](../images/lambda-config-code.png)
 
+### Add Environment Variable to Lambda Function
+- In the function's configuration, go to the "Configuration" tab.
+- Scroll down to the "Environment variables" section.
+- Click on the "Edit" button.
+- Add a new environment variable with the following details:
+  - Key: RP_BROKER Value: **your Redpanda Serverless Bootstrap URL**
+  - Key: RP_USERNAME Value: `workshop`
+  - Key: RP_PWD Value: `1234qwer`
+- Click on the "Save" button to apply the changes.
+
+![Env Variable](../images/lambda-layer-env.png)
+
+enter the following code,
+  Make sure to replace your the <REDPANDA_BROKER_URL> and <REDPANDA_USER_PWD> with your Redpanda Broker URL and pwd to `1234qwer` 
 
 ### Add the Layer to Your Go Lambda Function
 
