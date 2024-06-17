@@ -95,9 +95,10 @@ import json
 from opensearchpy import OpenSearch, RequestsHttpConnection, AWSV4SignerAuth
 from langchain_community.embeddings import BedrockEmbeddings
 from opensearchpy.helpers import bulk, BulkIndexError
+import os
 
 # OpenSearch configuration
-host = '<YOUR_OPENSEARCH_URL>'
+host = os.getenv("OPENSEARCH_HOST")
 region = 'us-east-1'
 service = 'aoss'
 index_name = 'background_index'
@@ -162,6 +163,8 @@ def lambda_handler(event, context):
     try:
         bulk(client, docs_to_index)
         print("Documents indexed successfully.")
+
+       
     except BulkIndexError as e:
         print(f"Bulk indexing error: {e}")
         for error in e.errors:
@@ -171,8 +174,9 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': json.dumps('Documents indexed successfully')
     }
+
+
 ```
-- Make sure you replace <YOUR_OPENSEARCH_URL> with your OpenSearch Serverless endpoint
 
 ### Package Loader Application in container
 
@@ -248,8 +252,7 @@ Click Create function to create the function.
   - **AmazonBedrockFullAccess** - allow access to Bedrock models.
 - Add the Opensearch Serverless permission, under **Add permission**, choose inline policies
 ![Add inlinepolicy](../images/loader-lambda-inline-policy.png)
-- Grant all action by selecting **All OpernSearch Serverless actions (aoss.*)**
-- Assign all collection in the account
+- Grant all action by selecting **All OpernSearch Serverless actions (aoss.*)** for all resources
 ![OpenSearch config](../images/loader-lambda-opensearch-config.png)
 
 - Name the Policy Name to `OpenSearchServerlessAll`
@@ -257,6 +260,16 @@ Click Create function to create the function.
 ![OpenSearch config](../images/loader-lambda-opensearch-name.png) 
 
 ![Lambda role permission](../images/loader-permission.png)
+
+ie:
+```
+{
+			"Sid": "VisualEditor0",
+			"Effect": "Allow",
+			"Action": "aoss:*",
+			"Resource": "*"
+		}
+```
 
 - Set the timeout for your Lambda function to 30 seconds, still in the "Configuration" tab.
 - Scroll down to the "General configuration" section.
@@ -274,6 +287,7 @@ This will ensure that your Lambda function has a maximum execution time of 30 se
   - Value: **your OpenSearch Serverless endpoint**
 - Click on the "Save" button to apply the changes.
 
+![Env Variable](../images/loader-env-variable.png)
 
 ### Configure the Trigger for the Lambda Function
 To configure the trigger for the Lambda function and listens to any uploaded documents into the S3 bucket, follow these steps:
@@ -309,14 +323,17 @@ To load the story documents into the S3 bucket, follow these steps:
 
 Once the documents are uploaded to the S3 bucket, you can proceed with further steps in your workflow.
 
-- Optional, in the OpenSearch Dashboard, under DevTool, check the number of document in the collection
-![File uploaded to S3](../images/opensearch-dahsboard.png)
 
-```
-GET background_index/_count
-```
+### Checking import result in OpenSearch Serverless Dashboard
+- Navigate to the index page of your OpenSearch Serverless instance.
+- Look for the total number of documents count displayed on the index page.
 
-### Update LangChain app with RAG by loading documents
+The number equal to the number of documents you uploaded to the S3 Bucket.
+
+![OpenSearch result config](../images/loader-opensearch-result-config.png)
+
+
+## Update LangChain app with RAG by loading documents
 Lets go back to your Hero Inference application, this time, we'll add the searched result from the vector database with similar semantics.
   
 ```
@@ -328,12 +345,16 @@ cd ~/hero
 ```
 import json
 import base64
+import os
 import boto3
 from kafka import KafkaProducer
+from langchain_community.llms import Bedrock
 from langchain_aws import BedrockLLM
+from langchain.chains import RetrievalQA
 from langchain_core.prompts import PromptTemplate
 from opensearchpy import OpenSearch, RequestsHttpConnection, AWSV4SignerAuth
 from langchain_community.embeddings import BedrockEmbeddings
+from langchain_community.vectorstores import OpenSearchVectorSearch
 
 # Secret Manager setup
 secret_name = "workshop/redpanda/npc"
@@ -348,8 +369,7 @@ bedrock_secret = secret_data['BEDROCK_SECRET']
 broker = secret_data['REDPANDA_SERVER']
 rp_user = secret_data['REDPANDA_USER']
 rp_pwd = secret_data['REDPANDA_PWD']
-opensearch_host = "xiegh39p77tea8gi3uo5.us-east-1.aoss.amazonaws.com"
-service = 'aoss'
+opensearch_host = os.getenv("OPENSEARCH_HOST")
 index_name = 'background_index'
 
 # Kafka Producer setup
@@ -368,7 +388,7 @@ boto3_bedrock = session.client(service_name="bedrock-runtime")
 
 # OpenSearch setup
 credentials = session.get_credentials()
-auth = AWSV4SignerAuth(credentials, region_name, service)
+auth = AWSV4SignerAuth(credentials, region_name, 'aoss')
 aoss_client = OpenSearch(
     hosts=[{'host': opensearch_host, 'port': 443}],
     http_auth=auth,
@@ -378,11 +398,21 @@ aoss_client = OpenSearch(
 )
 
 # Langchain LLM
-llm = BedrockLLM(client=boto3_bedrock, model_id="amazon.titan-text-lite-v1", region_name=region_name)
+llm = BedrockLLM(client=boto3_bedrock, model_id="meta.llama2-13b-chat-v1", region_name=region_name)
 
 # Initialize the BedrockEmbeddings model
 embedding_model = BedrockEmbeddings(model_id="amazon.titan-embed-text-v1", client=boto3_bedrock)
 
+
+vector_store = OpenSearchVectorSearch(
+    opensearch_url="https://"+opensearch_host,
+    http_auth=auth,
+    use_ssl=True,
+    verify_certs=True,
+    connection_class=RequestsHttpConnection,
+    embedding_function=embedding_model,
+    index_name = index_name
+)
 
 
 def lambda_handler(event, context):
@@ -391,74 +421,58 @@ def lambda_handler(event, context):
             question = base64.b64decode(record['value']).decode('utf-8')
             print(f"Received message: {question}")
             
-            # Search for relevant context in OpenSearch
-            retrieved_context = search_opensearch(question)
-            print(f"Retrieved context: {retrieved_context}")
-
             # Generate the response
-            response_msg = query_data(question, retrieved_context)
-            print(f'Response message: {response_msg}')
+            try:
+                response_msg = query_data(question)
+                print(f'Response message: {response_msg}')
+            except Exception as e:
+                print(f"Error generating response: {e}")
+                continue
             
             # Send response back via Kafka
-            message_data = {
-                "who": "npc1",
-                "msg": response_msg
-            }
-            producer.send('rpg-response', message_data)
-            producer.flush()
-
-def search_opensearch(input_query):
-    # Generate the embedding for the query using Bedrock embeddings
-    query_embedding =  embedding_model.embed_documents([input_query])[0]
-
-    # Define the k-NN search query
-    knn_query = {
-        "size": 3,  
-        'query': {
-            'knn': {
-                'embedding': {
-                    'vector': query_embedding,
-                    'k': 5  # Number of nearest neighbors
+            try:
+                message_data = {
+                    "who": "npc1",
+                    "msg": response_msg
                 }
-            }
-        }
-    }
+                producer.send('rpg-response', message_data)
+                producer.flush()
+            except Exception as e:
+                print(f"Error sending message to Kafka: {e}")
 
-    # Perform the k-NN search
-    response = aoss_client.search(
-        index=index_name,
-        body=knn_query
-    )
+def query_data(question):
+    # Generate a response using the RetrievalQA chain
 
-    # Extract the relevant documents
-    retrieved_docs = [hit['_source']['text'] for hit in response['hits']['hits']]
-    retrieved_context = " ".join(retrieved_docs)
-    
-    return retrieved_context
 
-def query_data(input_query, retrieved_context):
-    # Create the full prompt using the retrieved context and input query
-    full_prompt = f"""
-    You must provide an answer based on the following context.
+    # Define the prompt template
+    prompt_template = """
+    Context: Provide an answer based on the following context and keep your answer brief and to the point, as if you are speaking in a casual conversation.
 
-    You are a hero who lives in the fantasy world, you just defeated a monster, has been asked a question. Sound more upbeat tone.
+    Context: You are a hero who lives in the fantasy world, you just defeated a monster, has been asked a question. Sound more upbeat tone.
 
-    Context: {retrieved_context}
+    Context: {context}
 
-    Question: {input_query}
+    Question: {question}
     """
-    
-    # Generate a response from the LLM using the full prompt
-    response_msg = llm.invoke(full_prompt)
-    return response_msg
+    PROMPT = PromptTemplate(input_variables=["context", "question"], template=prompt_template)
 
-
-
+    # Create the RetrievalQA instance
+    qa = RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=vector_store.as_retriever(),
+        return_source_documents=True,
+        chain_type_kwargs={"prompt": PROMPT},
+    )
+    response = qa({"query": question, "question": question})
+    return response["result"]
 
 
 ```
 
+
 ### Rebuild and Push the Docker Image to Amazon ECR
+
+The <your-ecr-repository-uri> should be your first registry you created for the `askhero` function name `redpanda-workshop`
 
 - Build the Docker Image:
 Open a terminal and navigate to the directory containing your Dockerfile.
@@ -485,20 +499,88 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 docker push <your-ecr-repository-uri>
 ```
 
-### Update the Lambda Function with the new Docker Image
+### Update the addhero Lambda Function from the Docker Image
 
 - Navigate to Lambda
-- Select function  `askhero`
+- Select the function name: `addhero`
+- Under the image tab, click on **Deploy new image**
+- In the Container image settings page, click on **Browse images**
+- In the Select container image page, select the redpanda-workshop repository
+- Click on the latest tag 
+
+![Select latest image](../images/loader-latest-image.png)
+
+- Save and wait till it to deploy. 
+
+###  Update lambda configuration Permissions:
+
+- In the function's configuration, click on the "Configuration" tab.
+- Scroll down to the "Permissions" section, under Execution role section find the Role name, click on the `loader-role-xxxxxx` to configure the permission.
+![Lambda Role in Config](../images/loader-lambda-role.png)
+
+- Add the Opensearch Serverless permission, under **Add permission**, choose inline policies
+![Add inlinepolicy](../images/loader-lambda-inline-policy.png)
+- Grant all action by selecting **All OpernSearch Serverless actions (aoss.*)** for all resources
+![OpenSearch config](../images/loader-lambda-opensearch-config.png)
+
+- Name the Policy Name to `OpenSearchServerlessAll`
+- Click on the "Create Policy" button to apply the changes. 
+![OpenSearch config](../images/loader-lambda-opensearch-name.png) 
+
+![Lambda role permission](../images/loader-permission.png)
+
+ie:
+```
+{
+			"Sid": "VisualEditor0",
+			"Effect": "Allow",
+			"Action": "aoss:*",
+			"Resource": "*"
+		}
+```
+
+- Click on the "Save" button to apply the changes.
+  
+This will ensure that your Lambda function has a maximum execution time of 30 seconds before it times out and update the permissions for your Lambda function to include the required access to AWS services and resources.
+
+### Add Environment Variable to Lambda Function
+- In the function's configuration, go to the "Configuration" tab.
+- Scroll down to the "Environment variables" section.
+- Click on the "Edit" button.
+- Add a new environment variable with the following details:
+  - Key: OPENSEARCH_HOST
+  - Value: **your OpenSearch Serverless endpoint**
+- Click on the "Save" button to apply the changes.
+
+![Env Variable](../images/loader-env-variable.png)
 
 
-### Update the bedrock one 
+### Test the Lambda Function
+To test the Lambda function with a test event, 
 
+- In the function's configuration, go to the "Test" tab.
+- Enter a name for the test event (e.g., "MockEvent").
+- In the event body, provide the test event JSON payload 
 
+```
+{
+  "eventSource": "SelfManagedKafka",
+  "bootstrapServers": "redpanda.example.com:9092",
+  "records": {
+    "npc2-request-0": [
+      {
+        "topic": "npc1-request",
+        "partition": 0,
+        "offset": 0,
+        "timestamp": 1718237343835,
+        "timestampType": "CREATE_TIME",
+        "key": "",
+        "value": "SG93J3MgeW91ciBkYXk/",
+        "headers": []
+      }
+    ]
+  }
+}
+```
 
-### deploy again, and run test
-
-
-
-
-
-
+- Click test to start testing
