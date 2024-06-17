@@ -104,22 +104,6 @@ output:
             - type: bloblang
               bloblang: |
                 root = this.msg
-      - check: this.who == "npc3"
-        output:
-          kafka_franz:
-            seed_brokers:
-              - ${RP_BROKER}
-            topic: npc3-request
-            tls:
-              enabled: true
-            sasl:
-              - mechanism: SCRAM-SHA-256
-                username: ${RP_USERNAME:workshop}
-                password: ${RP_PWD}
-          processors:
-            - type: bloblang
-              bloblang: |
-                root = this.msg
   logger:
     level: DEBUG
     format: logfmt
