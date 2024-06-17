@@ -333,7 +333,7 @@ The number equal to the number of documents you uploaded to the S3 Bucket.
 ![OpenSearch result config](../images/loader-opensearch-result-config.png)
 
 
-## Update LangChain app with RAG by loading documents
+## Update LangChain function with RAG by loading documents
 Lets go back to your Hero Inference application, this time, we'll add the searched result from the vector database with similar semantics.
   
 ```

@@ -1,4 +1,4 @@
-## Setup Bedrock KnowledgebKnowledgeBasease
+## Setup Bedrock Knowledge base
 
 To set up the knowledge base in Amazon Bedrock, follow these steps:
 
@@ -24,4 +24,46 @@ v1.2** as the model
 
 
 
-## Update the sorcerer function to use the
+## Update the sorcerer function for the new knowledge base
+Lets go back to your Hero Inference application, this time, we'll add the searched result from the vector database with similar semantics.
+  
+```
+cd ~/sorcerer
+```
+
+- Replace the  `lambda_function.py` with the following code:
+```
+TODO
+```
+
+- Re-activate a virtual environment in your project directory
+```
+source ./env/bin/activate
+```
+### Creating a zip deployment package with dependencies
+- Update the requirements.txt file with the following content and upload it using the Lambda function's code editor:
+```
+TODO
+```
+
+- Install the required libraries with pip. 
+```
+pip install -r requirements.txt 
+```
+
+The folder in which pip installs the libraries may be named site-packages or dist-packages. This folder may be located in either the lib/python3.x or lib64/python3.x directory
+
+- Deactivate the virtual environment
+```
+deactivate
+```
+
+- Navigate into the directory containing the dependencies you installed with pip. Re-package the zip file.
+
+```
+cd env/lib/python3.12/site-packages
+zip -r ../../../../askSorcerer.zip . -x "*__pycache__*" 
+cd ../../../../
+zip askSorcerer.zip lambda_function.py
+```
+
