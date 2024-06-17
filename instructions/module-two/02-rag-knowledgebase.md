@@ -67,3 +67,32 @@ cd ../../../../
 zip askSorcerer.zip lambda_function.py
 ```
 
+### Test the Lambda Function
+To test the Lambda function with a test event, 
+
+- In the function's configuration, go to the "Test" tab.
+- Enter a name for the test event (e.g., "MockEvent").
+- In the event body, provide the test event JSON payload 
+
+```
+{
+  "eventSource": "SelfManagedKafka",
+  "bootstrapServers": "redpanda.example.com:9092",
+  "records": {
+    "npc2-request-0": [
+      {
+        "topic": "npc2-request",
+        "partition": 0,
+        "offset": 0,
+        "timestamp": 1718237343835,
+        "timestampType": "CREATE_TIME",
+        "key": "",
+        "value": "SG93J3MgeW91ciBkYXk/",
+        "headers": []
+      }
+    ]
+  }
+}
+```
+- Click on the "Save" button to save the test event, and click "Test" to execute the Lambda function with the test event
+![Lambda test](../images/askSorcerer-test.png)
