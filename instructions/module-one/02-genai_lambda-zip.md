@@ -265,3 +265,7 @@ Use the Redpanda Serverless console to post a text message in the "npc2-request"
 
 After the Lambda function is triggered, check the "npc-response" topic to see the result.
 ![Redpanda response](../images/rp-topic-response.png)
+
+
+### Conclusion
+By following these steps, you have successfully created and deployed your first Lambda function that integrates with Redpanda Serverless. This function processes incoming messages from the "npc2-request" topic, generates intelligent responses using AWS Bedrock, and publishes the responses to the "npc-response" topic. 
