@@ -1,34 +1,34 @@
-## Setup Bedrock Knowledge base
+## Bedrock Knowledge Base for Enhanced NPC Interactions 
+In this section, we will set up a knowledge base using Amazon Bedrock to enhance the dynamic interactions of NPCs (Non-Player Characters) in our RPG game. By integrating the knowledge base with a vector database and leveraging advanced AI models, we will create NPCs capable of generating contextually relevant and engaging responses. This approach ensures that NPC interactions are more immersive and responsive, enhancing the overall player experience.
 
+### Setup Bedrock Knowledge base
 To set up the knowledge base in Amazon Bedrock, follow these steps:
 
-- Navigate to the Amazon Bedrock service, Click on "Create Knowledge Base" to start the setup process.
+- **Navigate to the Amazon Bedrock Service**: Click on "Create Knowledge Base" to start the setup process.
 ![Bedrock KnowledgeBase 01](../images/kb-step-01.png)
-- Provide a name for your knowledge base or use the default generated name, select the **create and use a new service role** and click *Next*
+- **Provide a Name for Your Knowledge Base:** Use the default generated name or provide a custom name. Select "Create and use a new service role" and click "Next."
 ![Bedrock KnowledgeBase 02](../images/kb-step-02.png)
 - In the Configure data source page, under Amazon S3 URI section, click on the **Browse S3** button, add the `redpanda-workshop` bucket  
 ![Bedrock KnowledgeBase 03](../images/kb-step-03.png)
-- Select **Titan Embedding G1** as the embedding model and check the **Quick Create a new vector store**, it will create a new collection in the OpenSearch Serverless 
+- **Select Embedding Model**: Choose "Titan Embedding G1" as the embedding model and check "Quick Create a new vector store." This will create a new collection in the OpenSearch Serverless. 
 ![Bedrock KnowledgeBase 04](../images/kb-step-04.png)
-- Check the configuration again and click **Create knowledge base** to start creating.
+- **Review Configuration:** Verify the configuration and click "Create knowledge base" to start the creation process.
 ![Bedrock KnowledgeBase 05](../images/kb-step-05.png)
-- It'll take a few minutes to setup, once done, let's go ahead to sync the documents in the S3 bucket to the vector store by going to the Data source section, select the knowledge base you just created and click on the **sync** button.
+- **Sync Documents to Vector Store:** Once the knowledge base is set up, go to the Data source section, select the knowledge base you created, and click the "sync" button to sync the documents in the S3 bucket to the vector store.
 ![Bedrock KnowledgeBase 06](../images/kb-step-06.png)
-- On the right-hand panel, you'll see a section to test knowledge base select **Claude Instant
-v1.2** as the model
+- **Test the Knowledge Base:** On the right-hand panel, select "Claude Instant v1.2" as the model, enter a specific question about the character, and click "Run."
 ![Bedrock KnowledgeBase 07](../images/kb-step-07.png)
-- Put in your question specific about the character, and click **Run**
 ![Bedrock KnowledgeBase 08](../images/kb-step-08.png)
-- Also see the newly created collection in the OpenSearch Serverless Service
+- Verify Collection in OpenSearch Serverless: Check the newly created collection in the OpenSearch Serverless Service.
 ![Bedrock KnowledgeBase 09](../images/kb-step-09.png)
 - Back in the 
 
 
-## Update the sorcerer function for the new knowledge base
-Lets go back to your Hero Inference application, this time, we'll add the searched result from the vector database with similar semantics.
+## Update the Sorcerer Function for the New KnowledgeBase
+Now, let's update the Hero Inference application to include the searched results from the vector database with similar semantics.
   
 ```
-cd ~/sorcerer
+cd ~/environment/sorcerer
 ```
 
 - Replace the  `lambda_function.py` with the following code:
@@ -121,9 +121,7 @@ def lambda_handler(event, context):
         'body': json.dumps({'message': 'Message processed and sent to Kafka'})
     }
 ```
-- You'll notice that we use **Claude V1** as the model, since at the time this workshop is written, Claude is the only available model for Bedrock knowledge base, if you would like to use other models, please use the method we demonstrate in the previous steps. 
-  
-
+You'll notice that we use **Claude V1** as the model. At the time this workshop is written, Claude is the only available model for Bedrock knowledge base. If you would like to use other models, please use the method demonstrated in the previous steps.
 
 ### Creating a zip deployment package with dependencies
 
@@ -135,11 +133,30 @@ def lambda_handler(event, context):
 zip askSorcerer.zip lambda_function.py
 ```
 
+- Resync the `askSorcerer.zip` to the S3 working bucket **redpanda-working-folder-<YOUR_NAME>**
+```
+cp askSorcerer.zip ~/environment/tempupload
+aws s3 sync  ~/environment/tempupload s3://redpanda-working-folder-<YOUR_NAME>/
+```
+
+### Upload the Zip File to Lambda Function:
+
+- Back to the AWS Lambda service.
+- Select `askSorcerer` Lambda function upload the zip file to.
+![Lib upload](../images/askSorcerer-lib-upload.png)   
+
+- In the function's configuration, go to the "Code" tab.
+- Scroll down to the "Function code" section and click on the "Upload" button.
+- Choose the `askSorcerer.zip` file from your S3 **redpanda-working-folder-<YOUR_NAME>** bucket.You can copy the url from the S3 bucket dashboard.
+![S3 URL](../images/askSorcerer-s3-url.png)   
+
+- Wait for the upload to complete, and then click on the "Save" button to apply the changes.
+
+
 ### Test the Lambda Function
 To test the Lambda function with a test event, 
 
 - In the function's configuration, go to the "Test" tab.
-- Enter a name for the test event (e.g., "MockEvent").
 - In the event body, provide the test event JSON payload 
 
 ```
@@ -164,3 +181,16 @@ To test the Lambda function with a test event,
 ```
 - Click on the "Save" button to save the test event, and click "Test" to execute the Lambda function with the test event
 ![Lambda test](../images/askSorcerer-test.png)
+
+## Test with the Frontend
+Back to Cloud9 that is running the frontend of your prototype game. Interact with the game, asking few questions about the world like:
+
+- Tell me about the realm?
+- What happen in Elven Lands?
+- What do you know about the Fiend King?
+  
+![Add Trigger](../images/node-preview.png)
+
+
+## Conclusion
+By setting up the Bedrock knowledge base and updating the Sorcerer function, we have significantly enhanced the dynamic interactions of NPCs in our RPG game. This setup leverages advanced AI models and a robust vector database to provide contextually relevant and engaging responses, enriching the player's immersive experience.

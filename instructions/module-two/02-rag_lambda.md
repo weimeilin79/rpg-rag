@@ -247,9 +247,13 @@ To test the Lambda function with a test event,
 }
 ```
 
-## Try with the Frontend
-Back to Cloud9 in the  running the frontend of your prototype game. On the top menu bar, click on Preview > Preview Running Application.
+## Test with the Frontend
+Back to Cloud9 that is running the frontend of your prototype game. Interact with the game, asking few questions about the world like:
 
+- Can you tell me about the your adventure in Dracoria?
+- What do you know about the Dragon King?
+- Have you been to the southern realm?
+  
 ![Add Trigger](../images/node-preview.png)
 
 ## Conclusion

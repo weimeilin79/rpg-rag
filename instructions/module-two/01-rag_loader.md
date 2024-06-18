@@ -1,4 +1,4 @@
-## NAME (TBD)
+## Document Loading with RAG and OpenSearch
 
 the strengths of retrieval-based methods and generative models to enhance the quality and relevance of generated content. Unlike traditional generative models that rely solely on their internal knowledge, RAG incorporates external data sources during the generation process, leading to more accurate and contextually relevant outputs.
 

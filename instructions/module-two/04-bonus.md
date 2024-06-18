@@ -2,8 +2,8 @@
 
 Event-Driven Architecture (EDA) offers a robust framework for implementing dynamic and responsive features in online RPG games. By leveraging EDA, we can easily extend the functionalities of our game and introduce innovative mechanics that enhance player engagement and experience.
 
-Introducing Dynamic Character Abilities:
-In our next feature, every interaction with an NPC will lead to an increase in one of the player's character abilities. Different NPCs will contribute to different types of abilities, encouraging players to engage more with the game world and its inhabitants. This will create a more immersive and interactive environment, where players are motivated to seek out and converse with NPCs, thereby deepening their connection to the game.
+### Introducing Dynamic Character Abilities:
+For the next feature, every interaction with an NPC will lead to an increase in one of the player's character abilities. Different NPCs will contribute to different types of abilities, encouraging players to engage more with the game world and its inhabitants. This will create a more immersive and interactive environment, where players are motivated to seek out and converse with NPCs, thereby deepening their connection to the game.
 
 Benefits of Event-Driven Architecture for Feature Extension:
 
@@ -91,6 +91,8 @@ logger:
       '@service': bonus
 
 ```
+
+This pipeline start by decoding the base64-encoded message values from the Kafka records. Then, it uses the **Bloblang** to generate random bonus points for the player's character based on interactions with different NPCs. For "npc1", it selects a random ability (courage, strength, or HP) and assigns a random bonus between 1 and 5. Similarly, for "npc2", it selects a random ability (agility, wisdom, or MP) with the same range of bonuses. If the NPC is neither "npc1" nor "npc2", it assigns a default "luck -1" value. The processed messages are then sent to the "bonus" Kafka topic. 
 ![Redpanda Connect Config](../images/lambda-config-code.png)
 
 ### Add Environment Variable to Lambda Function
@@ -117,8 +119,15 @@ logger:
 
 ![Add Layer](../images/lambda-add-layer.png)
 
+> Note: If you can't see the layer you've create, find to layer in the left meu, click on the **redpanda-connect-binary** we created in the previous step.
+> ![Find Layer](../images/bonus-layer.png)
+> Copy the arn of the layer.
+> ![Copy Layer ARN](../images/bonus-layer-arn.png)
+> And choose **Specify an ARN** instead
+> > ![Specify ARN](../images/bonus-specify-arn.png)
+
 - In the Code Source tab, if you see the __Changes not deployed__, click **Deploy** to update your function
-![Deploy Reroute function](../images/llambda-deploy-reroute.png)
+![Deploy Reroute function](../images/bonus-deploy-reroute.png)
 
 
 ###  Update lambda configuration Permissions:
@@ -165,12 +174,26 @@ To configure the trigger for the Lambda function and connect to the topic in Red
 ![Redpanda question](../images/rp-reroute-produce.pngrp-reroute-produce.png)
 ![Redpanda question create](../images/rp-reroute-test.png)
 
-After the Lambda function is triggered, check the "npc1-request" topic to see the result.
-![Redpanda response](../images/rp-topic-response-reroute.png)
+After the Lambda function is triggered, check the "bonus" topic to see the result.
+![Redpanda Bonus](../images/rp-topic-response-bonus.png)
+
+
+## Test with the Frontend
+Back to Cloud9 that is running the frontend of your prototype game. Interact with the game, asking few questions and did you see new addition of ability appear on the screen?:
+
+- Tell me about the realm?
+- What happen in Elven Lands?
+- What do you know about the Fiend King?
+  
+![Show Bonus](../images/bonus-node-preview.png)
+![Show Bonus1](../images/bonus-node-preview1.png)
+
+### Conclusion
+By integrating dynamic character abilities through Event-Driven Architecture, we have created a more immersive and engaging experience for players. This feature encourages players to interact more with NPCs, enhancing their connection to the game world. The modular and scalable nature of EDA ensures that our game can handle increasing complexity and player interactions, maintaining a responsive and dynamic environment.
 
 
 ## Challenge: add another NPC 
 
-Did you see there is another Goddess in the game, can you please help to create the backend AI inference application? If you have not done this challenge in the previous module, it'll be better to start there.
+Did you see there is another Goddess in the game, can you please help to create the backend AI inference application? If you have already added the Goddess, try and add the newly introduced **RAG** and addition of **Dynamic Character Abilities** to the lovely Goddess NPC.
 > Hint: she is **npc3**
 ![RPG Game](../images/node-rpg-goddess.png)
