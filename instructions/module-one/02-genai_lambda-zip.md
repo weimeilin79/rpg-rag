@@ -42,8 +42,8 @@ Now you have added the necessary topics to Redpanda Serverless for your Lambda f
 - In your workspace, create a new directory `sorcerer` as the working directory for this section
 ```
 cd ~
-mkdir sorcerer
-cd sorcerer
+mkdir environment/sorcerer
+cd environment/sorcerer
 ```
 
 - In the workshop space, create a `lambda_function.py` file:
@@ -138,16 +138,16 @@ When receiving event, it decodes and formats them into prompts for the Bedrock m
 
 
 ### Creating a zip deployment package with dependencies
-- Create a requirements.txt file with the following content and upload it using the Lambda function's code editor:
+- Create a `requirements.txt` file with the following content in the same directory:
 ```
-boto3==1.34.125
-botocore==1.34.125
+boto3==1.34.128
+botocore==1.34.128
 jmespath==1.0.1
 kafka-python-ng==2.2.2
 python-dateutil==2.9.0.post0
 s3transfer==0.10.1
 six==1.16.0
-urllib3==2.2.1
+urllib3==1.26.19
 ```
 
 - Create and activate a virtual environment in your project directory
@@ -171,23 +171,37 @@ deactivate
 - Navigate into the directory containing the dependencies you installed with pip and create a .zip file in your project directory with the installed dependencies at the root. 
 
 ```
-cd env/lib/python3.12/site-packages
+cd env/lib/python3.*/site-packages
 zip -r ../../../../askSorcerer.zip . -x "*__pycache__*" 
 cd ../../../../
 zip askSorcerer.zip lambda_function.py
 ```
 
+- Move the `askSorcerer.zip` to the S3 working bucket **redpanda-working-folder-<YOUR_NAME>**
+```
+mkdir ~/environment/tempupload
+cp askSorcerer.zip ~/environment/tempupload
+aws s3 sync  ~/environment/tempupload s3://redpanda-working-folder-<YOUR_NAME>/
+```
+![Copy zip to S3](../images/askSorcerer-s3-working-folder.png) 
 
 ### Upload the Zip File to Lambda Function:
 
-- Open the AWS Management Console and navigate to the Lambda service.
-- Select the Lambda function you want to upload the zip file to.
+- Back to the AWS Lambda service.
+- Select `askSorcerer` Lambda function upload the zip file to.
+![Lib upload](../images/askSorcerer-lib-upload.png)   
+
 - In the function's configuration, go to the "Code" tab.
 - Scroll down to the "Function code" section and click on the "Upload" button.
-- Choose the `askSorcerer.zip` file from your local machine and click on the "Open" button.
+- Choose the `askSorcerer.zip` file from your S3 **redpanda-working-folder-<YOUR_NAME>** bucket.You can copy the url from the S3 bucket dashboard.
+![S3 URL](../images/askSorcerer-s3-url.png)   
+
 - Wait for the upload to complete, and then click on the "Save" button to apply the changes.
 
+
 ###  Update lambda configuration Permissions:
+
+Setting permissions for a Lambda role involves attaching policies that define what actions the Lambda function can perform on AWS resources. 
 
 - In the function's configuration, click on the "Configuration" tab.
 - Scroll down to the "Permissions" section, under Execution role section find the Role name, click on the `askSourcerer-role-xxxxxx` to configure the permission.
@@ -239,6 +253,8 @@ To test the Lambda function with a test event,
 ![Lambda test](../images/askSorcerer-test.png)
 
 ### Configure the Trigger for the Lambda Function
+A trigger in AWS Lambda (Kafka) enables the Lambda function to automatically execute in response to new messages published to a specified Kafka topic. By configuring a Kafka trigger, you link a Kafka topic to your Lambda function, ensuring that the function processes each incoming message as it arrives. This setup facilitates real-time data processing and seamless integration between Kafka and Lambda, allowing for efficient event-driven architectures.
+
 To configure the trigger for the Lambda function and connect to the topic in Redpanda Serverless using Kafka endpoint, follow these steps:
 
 - In the function's configuration, go to the "Triggers" tab.

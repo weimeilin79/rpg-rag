@@ -1,5 +1,15 @@
 ## Create the Second Lambda Function using Docker
 
+AWS Lambda allows you to run code without provisioning or managing servers, and it supports different methods for deploying your functions. One powerful and flexible approach is to use container images for deploying Lambda functions. Containers enable you to package and deploy your application with all its dependencies, providing consistency across development, testing, and production environments.
+
+Why Use Containers for Lambda Functions?
+
+- Custom Runtime and Dependencies: Containers allow you to include custom runtimes, binaries, and other dependencies that might not be supported natively by Lambda’s built-in runtimes.
+- Consistency: By packaging your code and dependencies together in a container, you ensure that your Lambda function runs consistently in any environment, reducing the "works on my machine" problem.
+- Portability: Containers make it easier to port applications across different environments and cloud providers, providing greater flexibility in deployment.
+- Complex Dependencies: When your application has complex dependencies or requires a specific environment setup, containers provide a straightforward way to package everything together.
+- Increased Deployment Size: Lambda traditionally has a deployment package size limit of 50 MB (zipped) and 250 MB (unzipped). Using containers increases this limit to up to 10 GB, making it easier to include large dependencies and binaries.
+
 
 ### Add Topics in Redpanda Serverless Platform  
 -  Open the Redpanda Serverless platform in your web browser.
@@ -9,6 +19,10 @@
 - Verify that thw topics have been successfully created.
 
 ### Setup a Container Registry
+A container registry is a centralized repository that stores, manages, and distributes container images. It enables developers to push, pull, and organize container images, facilitating seamless deployment and version control across different environments. By using a container registry, teams can ensure consistency, security, and scalability in their containerized application deployments.
+
+Amazon Elastic Container Registry (ECR) that integrates seamlessly with other AWS services, including Amazon ECS, EKS, and AWS Lambda, providing image management in AWS ecosystem.
+
 - In the AWS Management Console, select Services.
 - Under the "Containers" category, choose Elastic Container Registry.
 - In the Amazon ECR dashboard, click on Repositories in the left-hand navigation pane.
@@ -29,10 +43,22 @@
 
 ### Building Langchain App
 
-In your workspace, create a new directory hero as the working directory for this section. This directory will be used for building an AI inference app using LangChain for you Hero NPC.
+LangChain is a powerful framework designed to facilitate the development of applications powered by large language models (LLMs). It provides a structured and modular approach to integrating LLMs into various applications, enabling seamless interaction with natural language processing capabilities.By abstracting the complexities of model integration, LangChain accelerates development and enhances the functionality of applications leveraging advanced language models.
+
+We are using 3 major libraries in this implementation
+
+- **langchain_core** is the foundational library of the LangChain framework, offering core functionalities and tools necessary for building applications powered by large language models. It includes essential components such as prompt templates, model pipelines, and utility functions that streamline the development process. langchain_core provides a structured and modular approach to integrating language models into applications, enabling developers to create sophisticated and efficient AI-driven systems with ease. This library serves as the backbone of the LangChain ecosystem, supporting various extensions and integrations.
+- 
+- **langchain_community** is a library within the LangChain framework that serves as a hub for community-contributed integrations and extensions. It allows developers to leverage and share various plugins, models, and connectors developed by the community, facilitating collaboration and innovation. This library helps expand the capabilities of LangChain by incorporating a wide range of tools and resources contributed by other developers, making it easier to integrate and utilize different language models and APIs in your applications.
+
+- **langchain_aws** is a specialized library in the LangChain ecosystem that provides integration with AWS services. This library simplifies the process of connecting LangChain applications with AWS resources such as Amazon Bedrock, AWS Lambda, and other AI and machine learning services offered by AWS. 
+
+Now, let's get started. 
+
+- In your workspace, create a new directory hero as the working directory for this section. This directory will be used for building an AI inference app using LangChain for you Hero NPC.
   
 ```
-cd ~
+cd ~/environment
 mkdir hero
 cd hero
 ```
@@ -127,9 +153,14 @@ def query_data(prompt, query):
 
 ```
 
+The function retrieves necessary credentials from AWS Secrets Manager to securely connect to a Redpanda Serverless Kafka instance using the KafkaProducer. And sets up an AI language model (Llama 2) via LangChain via AWS Bedrock, which processes input queries and generates responses. 
+
+When triggered by incoming Kafka messages from the "npc1-request" topic, the function decodes the message, formats it into a prompt for the AI model, invokes the model to generate a response, and sends the response back to the "rpg-response" Kafka topic. 
+
+
 ### Package LangChain Application in container
 
-Package the LangChain application in a Docker container to ensure consistent and reliable deployment across different environments. Here it will be used to deploy in Lambda
+Package the LangChain application in a Docker container to ensure consistent and reliable deployment across different environments. Here it will be used to deploy in Lambda.
 
 - Create a file name `Dockerfile` 
   
@@ -157,9 +188,8 @@ CMD ["lambda_function.lambda_handler"]
 
 ### Build and Push the Docker Image to Amazon ECR
 
+
 - Build the Docker Image:
-Open a terminal and navigate to the directory containing your Dockerfile.
-Build the Docker image:
 
 ```
 docker build -t askhero .
@@ -176,7 +206,7 @@ docker tag askhero <your-ecr-repository-uri>
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <your-ecr-repository-uri>
 ```
 
-- By running this command, the Docker image built in the previous steps will be pushed to the specified ECR repository, making it available for deployment and use in other services or environments.
+- By running this command, the Docker image built in the previous steps will be pushed to the your ECR repository, making it available for deployment and use in AWS Lambda service.
 
 ```
 docker push <your-ecr-repository-uri>
@@ -196,6 +226,8 @@ docker push <your-ecr-repository-uri>
 ![Select image](../images/askHero-container-select.png)
 
 Click Create function to create the function.
+
+
 ###  Update lambda configuration Permissions:
 
 - In the function's configuration, click on the "Configuration" tab.
@@ -273,3 +305,7 @@ Use the Redpanda Serverless console to post a text message in the "npc1-request"
 
 After the Lambda function is triggered, check the "npc-response" topic to see the result.
 ![Redpanda response](../images/rp-topic-response-hero.png)
+
+
+### Conclusion
+By following these steps, you have successfully created and deployed another Lambda function that integrates with Redpanda Serverless using container. This function processes incoming messages from the "npc1-request" topic, generates intelligent responses using AWS Bedrock, and publishes the responses to the "npc-response" topic. 

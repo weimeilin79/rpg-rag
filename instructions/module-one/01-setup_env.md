@@ -101,6 +101,13 @@ Create another new secret called `workshop/redpanda/lambda` for the lambda trigg
     - username : `workshop`
     - password : `1234qwer`
 
+### Setup S3 bucket as working space to download files 
+
+- Open the Amazon S3 console at https://console.aws.amazon.com/s3/.
+- Click on the "Create bucket" button.
+- Click the Create bucket button, with Bucket type: General Purpose
+- Enter a name `redpanda-working-folder-<YOUR_NAME>` for your bucket, go ahead with default values and create.
+
 ## Set Up AWS Cloud9 Workspace
 Next, create a workspace for the Redpanda workshop, follow these steps:
 
