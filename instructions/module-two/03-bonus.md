@@ -63,9 +63,11 @@ pipeline:
           let npc1_ability = $npc1_abilities.index(random_int(min:0, max:2))
           let npc2_ability = $npc2_abilities.index(random_int(min:0, max:2))
           if this.who == "npc1" {
-            root.bonus = $npc1_ability.type + "+" + $npc1_ability.bonus.string()
-          } else if root.who == "npc2" {
-            root.bonus = $npc2_ability.type + "+" + $npc2_ability.bonus.string()
+            root.bonus = $npc1_ability.type + " +" + $npc1_ability.bonus.string()
+          } else if this.who == "npc2" {
+            root.bonus = $npc2_ability.type + " +" + $npc2_ability.bonus.string()
+          } else {
+            root.bonus = "luck -1"
           }
 output:
   kafka_franz:
@@ -168,21 +170,10 @@ After the Lambda function is triggered, check the "npc1-request" topic to see th
 
 
 
-{
-  "eventSource": "SelfManagedKafka",
-  "bootstrapServers": "redpanda.example.com:9092",
-  "records": {
-    "npc2-request-0": [
-      {
-        "topic": "npc-request",
-        "partition": 0,
-        "offset": 0,
-        "timestamp": 1718237343835,
-        "timestampType": "CREATE_TIME",
-        "key": "",
-        "value": "ewogICAgIndobyI6ICJucGMxIiwKICAgICJtc2ciOiAiV2hlcmUgd2VyZSB5b3UgeWVzdGVyZGF5PyIKfQ==",
-        "headers": []
-      }
-    ]
-  }
-}
+
+
+## Challenge: add another NPC 
+
+Did you see there is another Goddess in the game, can you please help to create the backend AI inference application?
+> Hint: she is **npc3**
+![RPG Game](../images/node-rpg-goddess.png)
