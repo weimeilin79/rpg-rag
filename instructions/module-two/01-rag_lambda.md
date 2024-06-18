@@ -364,8 +364,6 @@ client = sessionSM.client(service_name='secretsmanager', region_name=region_name
 get_secret_value_response = client.get_secret_value(SecretId=secret_name)
 secret = get_secret_value_response['SecretString']
 secret_data = json.loads(secret)
-bedrock_key = secret_data['BEDROCK_KEY']
-bedrock_secret = secret_data['BEDROCK_SECRET']
 broker = secret_data['REDPANDA_SERVER']
 rp_user = secret_data['REDPANDA_USER']
 rp_pwd = secret_data['REDPANDA_PWD']
@@ -446,9 +444,7 @@ def query_data(question):
 
     # Define the prompt template
     prompt_template = """
-    Context: Provide an answer based on the following context and keep your answer brief and to the point, as if you are speaking in a casual conversation.
-
-    Context: You are a hero who lives in the fantasy world, you just defeated a monster, has been asked a question. Sound more upbeat tone.
+    Answer no longer than 5 sentences.You are a hero who lives in the fantasy world, you just defeated a monster, has been asked a question. Sound more upbeat tone.
 
     Context: {context}
 
@@ -460,13 +456,11 @@ def query_data(question):
     qa = RetrievalQA.from_chain_type(
         llm=llm,
         retriever=vector_store.as_retriever(),
-        return_source_documents=True,
+        return_source_documents=False,
         chain_type_kwargs={"prompt": PROMPT},
     )
     response = qa({"query": question, "question": question})
-    return response["result"]
-
-
+    return response["result"].replace("Answer: ", "", 1)
 ```
 
 

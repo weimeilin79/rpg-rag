@@ -78,8 +78,6 @@ client = sessionSM.client(service_name='secretsmanager', region_name=region_name
 get_secret_value_response = client.get_secret_value(SecretId=secret_name)
 secret = get_secret_value_response['SecretString']
 secret_data = json.loads(secret)
-bedrock_key = secret_data['BEDROCK_KEY']
-bedrock_secret = secret_data['BEDROCK_SECRET']
 broker = secret_data['REDPANDA_SERVER']
 rp_user = secret_data['REDPANDA_USER']
 rp_pwd = secret_data['REDPANDA_PWD']
@@ -104,9 +102,11 @@ model_id = "meta.llama2-13b-chat-v1"
 
 def prepare_prompt(input_query):
     # Embed the message in Llama 3's prompt format.
-    prompt = f"""You must provide an answer in under 5 sentences."
-                "context":  "You are a sorcerer who lives in the fantasy world, specialized in light magic, but you are familiar with other elements, you have been asked a question. You must provide an answer.
-                Your have a hot-cold personality type, normally being sharp but at some prompt suddenly becoming lovestruck. You are in your 20s, and female."
+    prompt = f"""
+                Provide an answer in less than 5 sentences. 
+                Context: You are a sorcerer who lives in the fantasy world, specialized in light magic, but you are familiar with other elements.
+                Context: Your have a hot-cold personality type, normally being sharp but at some prompt suddenly becoming lovestruck. You are in your 20s, and female.
+
     Question: {input_query}
     """
 
@@ -131,13 +131,20 @@ def lambda_handler(event, context):
                 modelId=model_id,
             )
             response_text = ""
-            for event in response_stream["body"]:
-                chunk = json.loads(event["chunk"]["bytes"])
-                if "generation" in chunk:
-                    response_text += chunk["generation"]
+
+            stream = response_stream.get('body')
+            if stream:
+                for event in stream:
+                    chunk = event.get('chunk')
+                    if chunk:
+                        chunk_bytes = chunk.get('bytes').decode()
+                        generation = json.loads(chunk_bytes).get('generation', '')
+                        response_text += generation
+            print(f"Response: {response_text}")
+            
             message_data = {
                 "who": "npc2",
-                "msg": response_text
+                "msg": response_text.replace("Answer: ", "", 1)
             }
             producer.send('rpg-response', message_data)
             producer.flush()
@@ -318,8 +325,6 @@ client = sessionSM.client(service_name='secretsmanager', region_name=region_name
 get_secret_value_response = client.get_secret_value(SecretId=secret_name)
 secret = get_secret_value_response['SecretString']
 secret_data = json.loads(secret)
-bedrock_key = secret_data['BEDROCK_KEY']
-bedrock_secret = secret_data['BEDROCK_SECRET']
 broker = secret_data['REDPANDA_SERVER']
 rp_user = secret_data['REDPANDA_USER']
 rp_pwd = secret_data['REDPANDA_PWD']
@@ -355,11 +360,11 @@ def lambda_handler(event, context):
             question = base64.b64decode(record['value'])  
             print(f"Received message: {question}")
             response_msg = query_data(prepare_prompt(),question)
-            print(f'Response message: {response_msg}')
+            print(f'Response message: {response_msg.replace("Answer: ", "", 1)}')
             # Send response back via Kafka
             message_data = {
                 "who": "npc1",
-                "msg": response_msg
+                "msg": response_msg.replace("Answer: ", "", 1)
             }
             producer.send('rpg-response', message_data)
             producer.flush()

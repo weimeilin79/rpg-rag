@@ -111,7 +111,7 @@ def lambda_handler(event, context):
 
             message_data = {
                 "who": "npc2",
-                "msg": response_text
+                "msg": response_text.replace("Answer: ", "", 1)
             }
             producer.send('rpg-response', message_data)
             producer.flush()
@@ -120,7 +120,6 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': json.dumps({'message': 'Message processed and sent to Kafka'})
     }
-
 ```
 - You'll notice that we use **Claude V1** as the model, since at the time this workshop is written, Claude is the only available model for Bedrock knowledge base, if you would like to use other models, please use the method we demonstrate in the previous steps. 
   

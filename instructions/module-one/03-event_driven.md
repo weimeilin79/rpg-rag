@@ -129,8 +129,7 @@ output:
 
 ![Env Variable](../images/lambda-layer-env.png)
 
-enter the following code,
-  Make sure to replace your the <REDPANDA_BROKER_URL> and <REDPANDA_USER_PWD> with your Redpanda Broker URL and pwd to `1234qwer` 
+
 
 ### Add the Layer to Your Go Lambda Function
 
@@ -213,6 +212,7 @@ npm install
 - Start the Node.js application:
   
 ```
+export REDPANDA_BROKERS=<your Redpanda Serverless Bootstrap URL>
 node index.js
 ```
 
