@@ -15,7 +15,7 @@ Why Use Containers for Lambda Functions?
 -  Open the Redpanda Serverless platform in your web browser.
 - Navigate to the "Topics" section.
 - Click on the "Create Topic" button.
-- Enter "npc1-request" as the topic name and click "Create".
+- Enter `npc1-request` as the topic name and click "Create".
 - Verify that thw topics have been successfully created.
 
 ### Setup a Container Registry
@@ -41,14 +41,14 @@ Amazon Elastic Container Registry (ECR) that integrates seamlessly with other AW
 ![ACR config](../images/acr-uri.png)
 
 
-### Building Langchain App
+### Building Langchain for Serverless
 
 LangChain is a powerful framework designed to facilitate the development of applications powered by large language models (LLMs). It provides a structured and modular approach to integrating LLMs into various applications, enabling seamless interaction with natural language processing capabilities.By abstracting the complexities of model integration, LangChain accelerates development and enhances the functionality of applications leveraging advanced language models.
 
 We are using 3 major libraries in this implementation
 
 - **langchain_core** is the foundational library of the LangChain framework, offering core functionalities and tools necessary for building applications powered by large language models. It includes essential components such as prompt templates, model pipelines, and utility functions that streamline the development process. langchain_core provides a structured and modular approach to integrating language models into applications, enabling developers to create sophisticated and efficient AI-driven systems with ease. This library serves as the backbone of the LangChain ecosystem, supporting various extensions and integrations.
-- 
+
 - **langchain_community** is a library within the LangChain framework that serves as a hub for community-contributed integrations and extensions. It allows developers to leverage and share various plugins, models, and connectors developed by the community, facilitating collaboration and innovation. This library helps expand the capabilities of LangChain by incorporating a wide range of tools and resources contributed by other developers, making it easier to integrate and utilize different language models and APIs in your applications.
 
 - **langchain_aws** is a specialized library in the LangChain ecosystem that provides integration with AWS services. This library simplifies the process of connecting LangChain applications with AWS resources such as Amazon Bedrock, AWS Lambda, and other AI and machine learning services offered by AWS. 
@@ -58,9 +58,9 @@ Now, let's get started.
 - In your workspace, create a new directory hero as the working directory for this section. This directory will be used for building an AI inference app using LangChain for you Hero NPC.
   
 ```
-cd ~/environment
-mkdir hero
-cd hero
+cd ~
+mkdir environment/hero
+cd environment/hero
 ```
 
 - Create a file named `lambda_function.py`:

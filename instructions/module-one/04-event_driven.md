@@ -1,16 +1,20 @@
-## Data flow in Event Driven Architecture
+## Integrate with Redpanda Connect with AWS Lambda Using Layers
 
-Event-driven architecture is a powerful approach that enables systems to respond to events and triggers in real-time. In this architecture, data flows through various components, each responsible for handling specific events and performing relevant actions. 
 
-To ensure seamless data integration and routing, a robust data integration pipeline is essential. This pipeline acts as a central hub, receiving incoming data and intelligently rerouting it to the appropriate service based on the event type and the specific model being used. 
+AWS Lambda Layers provide a way to manage your function dependencies more efficiently, especially when dealing with moderate-sized libraries and binaries. Layers allow you to separate your dependencies from your function code, making it easier to update and manage them independently.
 
-By leveraging this data integration pipeline, organizations can efficiently handle different models and services, ensuring that each event is processed by the right component. This approach not only enhances scalability and flexibility but also enables the system to adapt to changing requirements and handle complex event-driven scenarios effectively.
+Benefits of Using Lambda Layers:
+
+- Modular Management: Layers enable you to manage your dependencies separately from your function code. This modular approach simplifies updates and maintenance.
+- Reduce Deployment Package Size: By offloading the dependencies to a layer, you can keep your deployment package small, focusing on your function code.
+- Reuse Across Functions: A single layer can be used by multiple Lambda functions, promoting reusability and consistency across your applications.
+- Ease of Updates: Updating a layer does not require redeploying your entire function, thus minimizing deployment times and potential disruptions.
 
 ### Add Topics in Redpanda Serverless Platform  
 -  Open the Redpanda Serverless platform in your web browser.
 - Navigate to the "Topics" section.
 - Click on the "Create Topic" button.
-- Enter "npc-request" as the topic name and click "Create".
+- Enter `npc-request` as the topic name and click "Create".
 - Verify the topic have been successfully created.
 
 ### Upload Redpanda Connect Binary to S3
@@ -23,11 +27,11 @@ Being a single binary, Redpanda Connect offers simplicity and ease of deployment
 Whether you need to transform, filter, or route data, Benthos provides a flexible and scalable solution. It seamlessly integrates with other components in your architecture, enabling smooth data flow and efficient handling of events.You can enhance the performance and reliability of your event-driven system. Its lightweight nature and efficient design make it an ideal choice for building robust and scalable data integration pipelines.
 
 
-First, you'll upload the Redpanda binary file to S3
+First, you'll upload the Redpanda binary file to S3:
 - Download the **Redpanda Connect** single binary from [here](tbd)
 - In the AWS Management Console, select Services and then choose S3 under the "Storage" category.
 - Click the Create bucket button, with Bucket type: General Purpose
-- Enter a name `redpanda-connect` for your bucket,  go ahead with default values and create.
+- Enter a name `redpanda-connect-<YOUR_NAME>` for your bucket,  go ahead with default values and create.
   
 ![Create Bucket](../images/s3-bucket-create.png)
 
@@ -45,7 +49,7 @@ First, you'll upload the Redpanda binary file to S3
 - Click the Create layer button.
 **Name**: `redpanda-connect-binary`.
 **Upload**: Under the Code entry type section, select Upload a file from S3.
-**S3 Link**: Choose Amazon S3 location and provide the link to the ZIP file you uploaded (The URL that was copied in previous step).
+**S3 Link**: Choose Amazon S3 location and provide the link to the ZIP file you uploaded (The URL that was copied in previous step in bucket "redpanda-connect-<YOUR_NAME>").
 **Runtime**: Select the runtime `Amazon Linux 2` for the layer (e.g., Go 1.x).
 - Click the Create button to create the layer.
 ![Create new layer](../images/lambda-create-layer.png)
@@ -55,7 +59,7 @@ First, you'll upload the Redpanda binary file to S3
 - Click the Create function button.
 - Select Author from scratch.
 - Function name: Enter name `rerouteNPC` for the Lambda function.
-- Runtime: Choose Amazon Linux 2. as we need Go runtime.
+- Runtime: Choose **Amazon Linux 2**. as we need Go runtime.
 - Architecture: arm64
 - Click Create function to create the function.
 
@@ -117,6 +121,10 @@ output:
 ```
 ![Redpanda Connect Config](../images/lambda-config-code.png)
 
+This configuration file is designed for Redpanda Connect, specifically using a data processing pipeline to route and process messages in an event-driven architecture. Here’s a detailed explanation of each section of the configuration:
+- processors with mapping that decodes the base64-encoded value from the input record and assigns it to the root of the document for further processing.
+- The output defines where and how to send the processed data base on who the NPC is. 
+
 ### Add Environment Variable to Lambda Function
 - In the function's configuration, go to the "Configuration" tab.
 - Scroll down to the "Environment variables" section.
@@ -128,7 +136,6 @@ output:
 - Click on the "Save" button to apply the changes.
 
 ![Env Variable](../images/lambda-layer-env.png)
-
 
 
 ### Add the Layer to Your Go Lambda Function
@@ -194,32 +201,8 @@ After the Lambda function is triggered, check the "npc1-request" topic to see th
 ![Redpanda response](../images/rp-topic-response-reroute.png)
 
 
-### Clone the GitHub Repository and Start the Node.js App
-To start building the frontend of the prototype game, we will be creating a Node.js application in the workspace. This application will serve as the frontend of the game, providing a user interface for players to interact with. 
+### Conclusion
 
-- To get started, in cloud9 in terminal or command prompt and navigate to the working directory and clone the frontend application:
+By following the steps outlined above, you have successfully integrated Redpanda Connect with AWS Lambda using layers, creating a robust and efficient event-driven architecture. This setup allows for modular management of your Lambda function dependencies, reducing deployment package size and enabling reusability across multiple functions.
 
-```
-git clone https://github.com/weimeilin79/aws-redpanda-workshop.git
-```
-
-- Navigate to the frontend directory, and load and install the necessary dependencies:
-```
-cd aws-redpanda-workshop/frontend
-npm install
-```
-
-- Start the Node.js application:
-  
-```
-export REDPANDA_BROKERS=<your Redpanda Serverless Bootstrap URL>
-node index.js
-```
-
-With this Node.js application in place, you can now start running the frontend of your prototype game. On the top menu bar, click on Preview > Preview Running Application  
-
-![Add Trigger](../images/node-preview.png)
-
-You'll see the RPG running,and go ahead start having conversation with the Hero and Sorcerer NPC.
-
-![RPG Game](../images/node-rpg.png)
+This integration demonstrates the power and flexibility of using Redpanda Connect for seamless data processing and routing, leveraging AWS Lambda for scalable and serverless compute capabilities. With this configuration, the system is well-equipped to handle complex event-driven scenarios, ensuring efficient data flow and real-time processing.
