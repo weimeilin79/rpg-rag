@@ -107,6 +107,7 @@ Create another new secret called `workshop/redpanda/lambda` for the lambda trigg
 - Click on the "Create bucket" button.
 - Click the Create bucket button, with Bucket type: General Purpose
 - Enter a name `redpanda-working-folder-<YOUR_NAME>` for your bucket, go ahead with default values and create.
+![Copy zip to S3](../images/askSorcerer-s3-working-folder.png) 
 
 ## Set Up AWS Cloud9 Workspace
 Next, create a workspace for the Redpanda workshop, follow these steps:
