@@ -183,7 +183,6 @@ mkdir ~/environment/tempupload
 cp askSorcerer.zip ~/environment/tempupload
 aws s3 sync  ~/environment/tempupload s3://redpanda-working-folder-<YOUR_NAME>/
 ```
-![Copy zip to S3](../images/askSorcerer-s3-working-folder.png) 
 
 ### Upload the Zip File to Lambda Function:
 
