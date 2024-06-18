@@ -50,4 +50,7 @@ Did you see there is another Goddess in the game, can you please help to create 
 ![RPG Game](../images/node-rpg-goddess.png)
 
 
+### Conclusion
+
 By following these steps, you have successfully set up and run the frontend of your prototype game using Node.js and integrated it with Redpanda Kafka for real-time messaging. This configuration provides a dynamic and interactive user experience, facilitating seamless communication between the client and the server. You are now equipped to expand your game further, such as by adding new NPCs like the Goddess, enhancing the depth and engagement of your game.
+
