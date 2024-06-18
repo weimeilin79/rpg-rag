@@ -223,9 +223,3 @@ With this Node.js application in place, you can now start running the frontend o
 You'll see the RPG running,and go ahead start having conversation with the Hero and Sorcerer NPC.
 
 ![RPG Game](../images/node-rpg.png)
-
-## Challenge: add another NPC 
-
-Did you see there is another Goddess in the game, can you please help to create the backend AI inference application?
-> Hint: she is **npc3**
-![RPG Game](../images/node-rpg-goddess.png)
