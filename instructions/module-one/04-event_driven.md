@@ -34,7 +34,7 @@ Whether you need to transform, filter, or route data, Benthos provides a flexibl
 
 
 First, you'll upload the Redpanda binary file to S3:
-- Download the **Redpanda Connect** single binary from [here](https://github.com/weimeilin79/aws-redpanda-workshop/raw/main/download/redpanda-connect-lambda-al2_4.27.0_linux_arm64.zip)
+- Download the **Redpanda Connect** single binary from [here](https://github.com/weimeilin79/rpg-rag/raw/main/download/redpanda-connect-lambda-al2_4.27.0_linux_arm64.zip)
 - In the AWS Management Console, select Services and then choose S3 under the "Storage" category.
 - Click the Create bucket button, with Bucket type: General Purpose
 - Enter a name `redpanda-connect-<YOUR_NAME>` for your bucket,  go ahead with default values and create.
