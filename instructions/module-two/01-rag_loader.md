@@ -1,6 +1,6 @@
 ## Document Loading with RAG and OpenSearch
 
-the strengths of retrieval-based methods and generative models to enhance the quality and relevance of generated content. Unlike traditional generative models that rely solely on their internal knowledge, RAG incorporates external data sources during the generation process, leading to more accurate and contextually relevant outputs.
+Retrieval-Augmented Generation (RAG) is an advanced approach that combines the strengths of retrieval-based methods and generative models to enhance the quality and relevance of generated content. Unlike traditional generative models that rely solely on their internal knowledge, RAG incorporates external data sources during the generation process, leading to more accurate and contextually relevant outputs.
 
 In many online RPGs, NPC dialogues are pre-scripted and static, which limits their ability to respond to players in a contextually relevant and interesting manner. RAG overcomes this limitation by allowing NPCs to pull relevant information from a vast database and generate responses that are both accurate and engaging. This approach ensures that NPCs can provide up-to-date and contextually appropriate responses, significantly enhancing the player's immersive experience.
 
@@ -22,7 +22,9 @@ We can use RAG to build dynamic quest dialogues where NPCs can provide real-time
 
 ### Create a Collection in OpenSearch Serverless
 
-IIIn our quest to make NPC interactions in RPG games more dynamic and engaging, we are leveraging RAG, and a critical component of this system is the vector database. A vector database stores high-dimensional vectors generated from text and other data types, enabling fast and accurate similarity searches. When an NPC receives a query from a player, the vector representation of the query is matched against vectors in the database to retrieve the most relevant information. This efficient retrieval process ensures that NPC responses are contextually appropriate and up-to-date, significantly enhancing the immersive experience. By integrating vector databases into our serverless architecture, we can handle large volumes of data and provide real-time, intelligent NPC interactions that adapt to the evolving game environment and player actions.
+In our quest to make NPC interactions in RPG games more dynamic and engaging, we are leveraging RAG, and a critical component of this system is the vector database. A vector database stores high-dimensional vectors generated from text and other data types, enabling fast and accurate similarity searches. When an NPC receives a query from a player, the vector representation of the query is matched against vectors in the database to retrieve the most relevant information. This efficient retrieval process ensures that NPC responses are contextually appropriate and up-to-date, significantly enhancing the immersive experience. By integrating vector databases into our serverless architecture, we can handle large volumes of data and provide real-time, intelligent NPC interactions that adapt to the evolving game environment and player actions.
+
+![Overview](../images/workshop-view-05.png)
 
 OpenSearch is an open-source search and analytics engine that also supports vector search capabilities, enabling efficient handling of high-dimensional data for similarity searches. This makes it suitable for applications requiring fast and accurate retrieval of relevant information based on vector representations, such as in RAG systems.
 
@@ -231,7 +233,8 @@ docker tag load_stories <your-ecr-repository-uri>
 - Login to the ECR:
   
 ```
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <your-ecr-repository-uri>
+export region_name=<workshop_region>
+aws ecr get-login-password --region $region_name | docker login --username AWS --password-stdin <your-loader-ecr-repository-uri>
 ```
 
 Push the Docker Image, the Docker image built in the previous steps will be pushed to the specified ECR repository, making it available for deployment and use in other services or environments.
@@ -316,21 +319,11 @@ To configure the trigger for the Lambda function and listen to any uploaded docu
 ### Load Story Documents
 To load the story documents into the S3 bucket, follow these steps:
 
-- Download the documents from the GitHub repository:
-    - In your laptop.
-    - Navigate to the directory where you want to download the documents.
-    - Run the following command to download the documents or manually download all files in the stories folder:
-      ```
-      git clone https://github.com/weimeilin79/aws-redpanda-workshop/tree/main/story
-      ```
+- Sync the downloaded documents to the S3 bucket:
+```
+aws s3 sync  ~/environment/aws-redpanda-workshop/story s3://redpanda-workshop-<YOUR_NAME>/
+```
 
-- Upload the downloaded documents to the S3 bucket:
-    - Open the AWS Management Console.
-    - Go to the S3 service.
-    - Select the `redpanda-workshop-<YOUR_NAME>` bucket.
-    - Click on the "Upload" button.
-    - Choose the downloaded documents from your local machine.
-    - Click on the "Upload" button to upload the documents to the S3 bucket.
 
 Once the documents are uploaded to the S3 bucket, you can proceed with further steps in your workflow.
 

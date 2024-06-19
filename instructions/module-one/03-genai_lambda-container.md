@@ -10,6 +10,7 @@ Why Use Containers for Lambda Functions?
 - Complex Dependencies: When your application has complex dependencies or requires a specific environment setup, containers provide a straightforward way to package everything together.
 - Increased Deployment Size: Lambda traditionally has a deployment package size limit of 50 MB (zipped) and 250 MB (unzipped). Using containers increases this limit to up to 10 GB, making it easier to include large dependencies and binaries.
 
+![Overview](../images/workshop-view-03.png)
 
 ### Add Topics in Redpanda Serverless Platform  
 -  Open the Redpanda Serverless platform in your web browser.
@@ -203,7 +204,8 @@ docker tag askhero <your-ecr-repository-uri>
 - Push the Docker Image to ECR:
   
 ```
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <your-ecr-repository-uri>
+export region_name=<workshop_region>
+aws ecr get-login-password --region $region_name | docker login --username AWS --password-stdin <your-loader-ecr-repository-uri>
 ```
 
 - By running this command, the Docker image built in the previous steps will be pushed to the your ECR repository, making it available for deployment and use in AWS Lambda service.

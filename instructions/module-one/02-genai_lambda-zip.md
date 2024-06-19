@@ -9,7 +9,7 @@ To deploy the Lambda function, a zip deployment package is created. The required
 The zip file is uploaded to the Lambda function through the AWS Management Console. The function's configuration is updated to include necessary environment variables and permissions. The timeout is set to 30 seconds to ensure the function has enough time to process messages. Test events can be created to verify the function's behavior.
 
 The Lambda function is triggered by messages from the Kafka topic. It receives the event payload, which contains the message from the "npc2-request" topic. 
-
+![Overview](../images/workshop-view-02.png)
 
 ### Add Topics in Redpanda Serverless Platform  
 - Open the Redpanda Serverless platform in your web browser.

@@ -22,6 +22,8 @@ Seamless Integration and Maintenance:
 
 By leveraging AI and serverless architecture, we can revolutionize NPC interactions in online RPG games, providing a more immersive, responsive, and engaging player experience while maintaining cost efficiency and scalability.
 
+![Overview](../images/workshop-overview-01.gif)
+
 ## Technology Stack 
 In this workshop, we will leverage a variety of AWS and Redpanda technologies to build and deploy scalable, efficient, and intelligent systems.
 
@@ -35,8 +37,10 @@ In this workshop, we will leverage a variety of AWS and Redpanda technologies to
 
 ## Sign up for Bedrock
 - Amazon Bedrock is a fully managed service that provides access to foundation models available via an API. With Bedrock, you can choose from a variety of models to find the one that’s best suited for your use case.
-- In US-EAST-1, go to https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess and enable the following model.
-
+- Enable the following models for the workshop, 
+  - Llama 2 Chat 13B (meta.llama2-13b-chat-v1) : Model for most of our characters
+  - Titan Embeddings G1 - Text(amazon.titan-embed-text-v1): Model to convert embedding
+  - Claude Instant 1.2 (anthropic.claude-instant-v1):  The only available model for Knowledge base
 
 
 ## Sign up for Redpanda Serverless Cluster
@@ -122,7 +126,7 @@ Next, create a workspace for the Redpanda workshop, follow these steps:
 ![Cloud9 Setup](../images/cloud9-setup.png)
 
 -  Wait for the workspace to be created. Once it's ready, you can access it by clicking on the "Open IDE" button.
-![Cloud9 Setup](../images/ccloud9-list.png)
+![Cloud9 Setup](../images/cloud9-list.png)
 
 Now you have a Cloud9 workspace set up for the Redpanda workshop. You can use this workspace to follow along with the instructions and complete the workshop tasks.
 

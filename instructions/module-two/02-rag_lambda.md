@@ -2,6 +2,7 @@
 
 Retrieval-Augmented Generation (RAG) leverages both retrieval-based methods and generative models to enhance the quality and relevance of generated content. By incorporating external data sources during the generation process, RAG ensures that the responses provided by NPCs in online RPGs are not only accurate but also contextually appropriate. This significantly enhances the immersive experience for players, making NPC interactions more engaging and dynamic. Follow the steps below to update your Lambda function and deploy it using Docker.
 
+![Overview](../images/workshop-view-07.png)
 
 ## Update the previous LangChain function to enable RAG
 First, navigate to your Hero Inference application directory:
@@ -152,10 +153,14 @@ Tag the Docker Image:
 docker tag askhero <your-ecr-repository-uri>
 ```
 
+> Note: The <your-ecr-repository-uri> is the `redpanda-workshop` registry, not the `loader`.
+> ![hero rag ecr](static/images/hero-rag-ecr.png)
+
 - Login to the registry
   
 ```
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <your-ecr-repository-uri>
+export region_name=<workshop_region>
+aws ecr get-login-password --region $region_name | docker login --username AWS --password-stdin <your-loader-ecr-repository-uri>
 ```
 
 - By running the pish command, the Docker image built in the previous steps will be pushed to the specified ECR repository.
@@ -192,7 +197,7 @@ docker push <your-ecr-repository-uri>
 - Click on the "Create Policy" button to apply the changes. 
 ![OpenSearch config](../images/loader-lambda-opensearch-name.png) 
 
-![Lambda role permission](../images/loader-permission.png)
+![Lambda role permission](../images/hero-rag-permission.png)
 
 ie:
 ```

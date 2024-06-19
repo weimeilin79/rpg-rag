@@ -1,7 +1,9 @@
-##  Running the RPF Game Frontend
+##  Running the RPG Game Frontend
 
 
 The Node.js frontend of the prototype game serves as the user interface for players to interact with. It is responsible for rendering the game elements and facilitating player actions. 
+
+![Overview](../images/workshop-overview-01.gif)
 
 By cloning the GitHub repository and starting the Node.js app, you can begin building and running the frontend of your game. Follow the steps below to get started:
 

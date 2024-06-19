@@ -1,6 +1,8 @@
 ## Bedrock Knowledge Base for Enhanced NPC Interactions 
 In this section, we will set up a knowledge base using Amazon Bedrock to enhance the dynamic interactions of NPCs (Non-Player Characters) in our RPG game. By integrating the knowledge base with a vector database and leveraging advanced AI models, we will create NPCs capable of generating contextually relevant and engaging responses. This approach ensures that NPC interactions are more immersive and responsive, enhancing the overall player experience.
 
+![Overview](../images/workshop-view-08.png)
+
 ### Setup Bedrock Knowledge base
 To set up the knowledge base in Amazon Bedrock, follow these steps:
 

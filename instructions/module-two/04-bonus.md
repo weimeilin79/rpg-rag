@@ -11,7 +11,11 @@ Benefits of Event-Driven Architecture for Feature Extension:
 - Modular and Scalable Design: EDA supports a modular approach, where individual components can be updated or replaced without affecting the entire system. This ensures scalability and flexibility, allowing the game to handle increasing complexity and player interactions.
 - Enhanced Player Experience: By tying character progression to NPC interactions, players are incentivized to explore the game world more thoroughly. This leads to a richer and more varied gameplay experience, with each NPC encounter offering unique benefits.
 
+![Overview](../images/workshop-overview-02.gif)
+
 By implementing this feature through an Event-Driven Architecture, we can ensure that our game remains dynamic, responsive, and engaging. Players will have more reasons to interact with NPCs, leading to a deeper and more rewarding gameplay experience.
+
+![Overview eda](../images/workshop-view-08.png)
 
 
 ### Add Topics in Redpanda Serverless Platform  

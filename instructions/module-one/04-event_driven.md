@@ -10,6 +10,11 @@ Benefits of Using Lambda Layers:
 - Reuse Across Functions: A single layer can be used by multiple Lambda functions, promoting reusability and consistency across your applications.
 - Ease of Updates: Updating a layer does not require redeploying your entire function, thus minimizing deployment times and potential disruptions.
 
+Since we now have two models and services ready, we will have to reroute the question to the correct services.
+
+![Route](../images/workshop-view-01.png)
+
+
 ### Add Topics in Redpanda Serverless Platform  
 -  Open the Redpanda Serverless platform in your web browser.
 - Navigate to the "Topics" section.
@@ -25,10 +30,11 @@ It is a powerful data integration tool written in Golang. It is designed to hand
 Being a single binary, Redpanda Connect offers simplicity and ease of deployment. You can quickly set up and configure Redpanda Connect without the need for complex installations or dependencies. This makes it a convenient choice for integrating different components in your event-driven architecture.And you can easily define data processing pipelines using a simple and intuitive configuration file in YAML. It supports various processors and output options, allowing you to customize your data flow according to your specific requirements.
 
 Whether you need to transform, filter, or route data, Benthos provides a flexible and scalable solution. It seamlessly integrates with other components in your architecture, enabling smooth data flow and efficient handling of events.You can enhance the performance and reliability of your event-driven system. Its lightweight nature and efficient design make it an ideal choice for building robust and scalable data integration pipelines.
+![Overview](../images/workshop-view-04.png)
 
 
 First, you'll upload the Redpanda binary file to S3:
-- Download the **Redpanda Connect** single binary from [here](tbd)
+- Download the **Redpanda Connect** single binary from [here](https://github.com/weimeilin79/aws-redpanda-workshop/raw/main/download/redpanda-connect-lambda-al2_4.27.0_linux_arm64.zip)
 - In the AWS Management Console, select Services and then choose S3 under the "Storage" category.
 - Click the Create bucket button, with Bucket type: General Purpose
 - Enter a name `redpanda-connect-<YOUR_NAME>` for your bucket,  go ahead with default values and create.
