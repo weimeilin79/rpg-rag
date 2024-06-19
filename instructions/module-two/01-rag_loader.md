@@ -324,8 +324,7 @@ To load the story documents into the S3 bucket, follow these steps:
 aws s3 sync  ~/environment/aws-redpanda-workshop/story s3://redpanda-workshop-<YOUR_NAME>/
 ```
 
-
-Once the documents are uploaded to the S3 bucket, you can proceed with further steps in your workflow.
+Once the documents are synced to the S3 bucket, you can proceed with further steps in your workflow.
 
 
 ### Checking import result in OpenSearch Serverless Dashboard
