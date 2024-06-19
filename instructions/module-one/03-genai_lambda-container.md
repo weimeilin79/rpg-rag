@@ -77,9 +77,8 @@ from langchain_core.prompts import PromptTemplate
 
 # Secret Manager setup
 secret_name = "workshop/redpanda/npc"
-region_name = "us-east-1"
 sessionSM = boto3.session.Session()
-client = sessionSM.client(service_name='secretsmanager', region_name=region_name)
+client = sessionSM.client(service_name='secretsmanager')
 get_secret_value_response = client.get_secret_value(SecretId=secret_name)
 secret = get_secret_value_response['SecretString']
 secret_data = json.loads(secret)
@@ -98,11 +97,11 @@ producer = KafkaProducer(
 )
 
 # LangChain setup
-session = boto3.Session(region_name='us-east-1')
+session = boto3.Session()
 boto3_bedrock = session.client(service_name="bedrock-runtime")
 
 # Langchain LLM
-llm = BedrockLLM(client=boto3_bedrock, model_id="meta.llama2-13b-chat-v1", region_name='us-east-1')
+llm = BedrockLLM(client=boto3_bedrock, model_id="meta.llama2-13b-chat-v1")
 
 def prepare_prompt():
     prompt_template = """
@@ -122,11 +121,7 @@ def lambda_handler(event, context):
             question = base64.b64decode(record['value'])  
             print(f"Received message: {question}")
             response_msg = query_data(prepare_prompt(),question)
-            
-            # Convert response_msg to string and print ASCII values for debugging
             response_msg = str(response_msg)
-            print(f"Raw response message: {response_msg}")
-            print(f"ASCII values: {[ord(c) for c in response_msg[:20]]}")
 
             # Manually remove "Answer:" including any potential leading/trailing whitespace
             prefix = "Answer:"

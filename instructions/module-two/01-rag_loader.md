@@ -112,16 +112,16 @@ import os
 
 # OpenSearch configuration
 host = os.getenv("OPENSEARCH_HOST")
-region = 'us-east-1'
 service = 'aoss'
 index_name = 'background_index'
 
 # Initialize Boto3 session
 session = boto3.Session()
+region_name = session.region_name
 
 # Initialize OpenSearch client
 credentials = session.get_credentials()
-auth = AWSV4SignerAuth(credentials, region, service)
+auth = AWSV4SignerAuth(credentials, region_name, service)
 client = OpenSearch(
     hosts=[{'host': host, 'port': 443}],
     http_auth=auth,

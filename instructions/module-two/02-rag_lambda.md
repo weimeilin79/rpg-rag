@@ -29,9 +29,8 @@ from langchain_community.vectorstores import OpenSearchVectorSearch
 
 # Secret Manager setup
 secret_name = "workshop/redpanda/npc"
-region_name = "us-east-1"
 sessionSM = boto3.session.Session()
-client = sessionSM.client(service_name='secretsmanager', region_name=region_name)
+client = sessionSM.client(service_name='secretsmanager')
 get_secret_value_response = client.get_secret_value(SecretId=secret_name)
 secret = get_secret_value_response['SecretString']
 secret_data = json.loads(secret)
@@ -52,7 +51,8 @@ producer = KafkaProducer(
 )
 
 # LangChain setup
-session = boto3.Session(region_name=region_name)
+session = boto3.Session()
+region_name = session.region_name
 boto3_bedrock = session.client(service_name="bedrock-runtime")
 
 # OpenSearch setup
@@ -132,6 +132,7 @@ def query_data(question):
     )
     response = qa({"query": question, "question": question})
     return response["result"].replace("Answer: ", "", 1)
+
 ```
 
 This function processes incoming questions, leveraging Retrieval-Augmented Generation (RAG). When a question is received via Kafka, it decodes the question and queries a vector database using OpenSearch to retrieve contextually relevant information. It then generates an engaging, contextually appropriate response using a pre-defined prompt template and the LangChain library, specifically the Bedrock LLM model. The response is then sent back to the game via Kafka, enhancing the NPC's ability to provide dynamic and immersive interactions with players. This setup ensures that the NPC's dialogue is both relevant and enriched with up-to-date information from the vector database.

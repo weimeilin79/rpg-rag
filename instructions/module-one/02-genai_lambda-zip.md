@@ -55,9 +55,8 @@ from kafka import KafkaProducer
 
 # Secret Manager setup
 secret_name = "workshop/redpanda/npc"
-region_name = "us-east-1"
 sessionSM = boto3.session.Session()
-client = sessionSM.client(service_name='secretsmanager', region_name=region_name)
+client = sessionSM.client(service_name='secretsmanager')
 get_secret_value_response = client.get_secret_value(SecretId=secret_name)
 secret = get_secret_value_response['SecretString']
 secret_data = json.loads(secret)
@@ -76,7 +75,7 @@ producer = KafkaProducer(
 )
 
 # LangChain setup
-session = boto3.Session(region_name='us-east-1')
+session = boto3.Session()
 boto3_bedrock = session.client(service_name="bedrock-runtime")
 
 # Set the model ID, e.g., Llama 3 Chat.
@@ -86,9 +85,9 @@ model_id = "meta.llama2-13b-chat-v1"
 def prepare_prompt(input_query):
     # Embed the message in Llama 3's prompt format.
     prompt = f"""
-                Provide an answer in less than 5 sentences. 
-                Context: You are a sorcerer who lives in the fantasy world, specialized in light magic, but you are familiar with other elements.
-                Context: Your have a hot-cold personality type, normally being sharp but at some prompt suddenly becoming lovestruck. You are in your 20s, and female.
+    Context: You are a sorcerer who lives in the fantasy world, specialized in light magic, but you are familiar with other elements.
+    Context: You have a hot-cold personality type, normally being sharp but at some point suddenly becoming lovestruck. You are in your 20s, and female.
+    Instruction: Please answer the following question in less than 5 sentences. Don't provide Note in the answer.
 
     Question: {input_query}
     """
@@ -120,7 +119,7 @@ def lambda_handler(event, context):
                 for event in stream:
                     chunk = event.get('chunk')
                     if chunk:
-                        chunk_bytes = chunk.get('bytes').decode()
+                        chunk_bytes = chunk.get('bytes').decode('utf-8')
                         generation = json.loads(chunk_bytes).get('generation', '')
                         response_text += generation
             print(f"Response: {response_text}")

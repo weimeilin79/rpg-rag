@@ -43,14 +43,11 @@ from kafka import KafkaProducer
 
 # Secret Manager setup
 secret_name = "workshop/redpanda/npc"
-region_name = "us-east-1"
 sessionSM = boto3.session.Session()
-client = sessionSM.client(service_name='secretsmanager', region_name=region_name)
+client = sessionSM.client(service_name='secretsmanager')
 get_secret_value_response = client.get_secret_value(SecretId=secret_name)
 secret = get_secret_value_response['SecretString']
 secret_data = json.loads(secret)
-bedrock_key = secret_data['BEDROCK_KEY']
-bedrock_secret = secret_data['BEDROCK_SECRET']
 broker = secret_data['REDPANDA_SERVER']
 rp_user = secret_data['REDPANDA_USER']
 rp_pwd = secret_data['REDPANDA_PWD']
@@ -122,6 +119,7 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': json.dumps({'message': 'Message processed and sent to Kafka'})
     }
+
 ```
 You'll notice that we use **Claude V1** as the model. At the time this workshop is written, Claude is the only available model for Bedrock knowledge base. If you would like to use other models, please use the method demonstrated in the previous steps.
 
